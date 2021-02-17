@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	testTargetUrl = "http://localhost"
+	testTargetUrl = "https://example.com"
 	testHttpMethods = "GET,PUT"
 	testHttpHeaders = `{"Authorization": "Bearer xxxx"}`
 	testThreadNum = "10"

@@ -26,7 +26,7 @@ func ValidateEnv() map[string]string {
 	validateReqHttpMethodPercentage(result)
 	validateHttpRequestBody(result)
 	validateThreadNum(result)
-	validateLoadTimeSeconds(result)
+	validateTrialNum(result)
 	validatePermanent(result)
 	validateSlackNotifyThreshHoldLatencyMillis(result)
 	return result
@@ -94,9 +94,18 @@ func validateReqHttpMethodPercentage(result map[string]string) map[string]string
 			result[EnvReqHttpMethodPercentages] = fmt.Sprintf("Environment valiable %s is required because method is multiple.", EnvReqHttpMethodPercentages)
 			return result
 		}
-		percentages := make(map[string]interface{})
+		percentages := make(map[string]int)
 		if err := json.Unmarshal([]byte(env), &percentages); err != nil {
 			result[EnvReqHttpMethodPercentages] = fmt.Sprintf("Environment valiable %s not hashmap structure.", EnvReqHttpMethodPercentages)
+			return result
+		}
+
+		var totalPercent int
+		for _, v := range percentages {
+			totalPercent = totalPercent + v
+		}
+		if totalPercent != 10 {
+			result[EnvReqHttpMethodPercentages] = fmt.Sprintf("Environment valiable %s requires percentage of 10.", EnvReqHttpMethodPercentages)
 			return result
 		}
 	}
@@ -132,8 +141,8 @@ func validateThreadNum(result map[string]string) map[string]string {
 	return nil
 }
 
-// Validate LOAD_TIME_SECONDS env
-func validateLoadTimeSeconds(result map[string]string) map[string]string {
+// Validate TRIAL_NUM env
+func validateTrialNum(result map[string]string) map[string]string {
 	env := os.Getenv(EnvTrialNum)
 	if validateEmpty(env) {
 		result[EnvTrialNum] = fmt.Sprintf("Environment valiable %s is required.", EnvTrialNum)
@@ -150,7 +159,7 @@ func validateLoadTimeSeconds(result map[string]string) map[string]string {
 func validatePermanent(result map[string]string) map[string]string {
 	env := os.Getenv(EnvPermanent)
 	if validateEmpty(env) {
-		return nil
+		return result
 	}
 	if !strings.EqualFold(env, "true") || !strings.EqualFold(env, "false") {
 		result[EnvPermanent] = fmt.Sprintf("Environment valiable %s is true or false.", EnvPermanent)
@@ -163,7 +172,7 @@ func validatePermanent(result map[string]string) map[string]string {
 func validateSlackNotifyThreshHoldLatencyMillis(result map[string]string) map[string]string {
 	env := os.Getenv(EnvSlackNotifyThreshHoldLatencyMillis)
 	if validateEmpty(env) {
-		return nil
+		return result
 	}
 	if _, err := strconv.Atoi(env); err != nil {
 		result[EnvSlackNotifyThreshHoldLatencyMillis] = fmt.Sprintf("Environment valiable %s is not number.", EnvSlackNotifyThreshHoldLatencyMillis)

@@ -10,18 +10,18 @@ import (
 	"net/http"
 )
 
-const (
-	durationSeconds = 15
-	requestDuration = durationSeconds * time.Second
-)
+var durationSeconds = 15
 
 type BenchmarkClient interface {
-	Attack() Result
+	Attack(attackNum int) Result
+
+	GetRandomHttpRequests() []*http.Request
 }
 
 type HttpClient struct {
 	HttpClient         *http.Client
 	RandomHttpRequests []*http.Request
+	RequestDuration    time.Duration
 }
 
 type Result struct {
@@ -39,7 +39,7 @@ func NewBenchmarkClient(url string, methods []string, headers map[string]string,
 		var request *http.Request
 		for targetMethod, percentage := range percentages {
 			if strings.EqualFold(method, targetMethod) {
-				// Generate request per percentage method
+				// GenerateCharts request per percentage method
 				for i := 0; i < percentage; i++ {
 					if !strings.EqualFold(method, http.MethodGet) {
 						request, _ = http.NewRequest(method, url, body)
@@ -56,28 +56,32 @@ func NewBenchmarkClient(url string, methods []string, headers map[string]string,
 		}
 	}
 
-	rand.Seed(time.Now().UnixNano())
-	rand.Shuffle(len(requests), func(i, j int) { requests[i], requests[j] = requests[j], requests[i] })
-	fmt.Printf("Request info %v\n", requests)
+	shuffleRequest(requests)
+	fmt.Print("Http request info = ")
+	for _, r := range requests {
+		fmt.Printf("%s ", r.Method)
+	}
+	fmt.Println()
 
 	client := new(http.Client)
 	return HttpClient{
 		HttpClient:         client,
 		RandomHttpRequests: requests,
+		RequestDuration: time.Duration(durationSeconds) * time.Second,
 	}
 }
 
-func (h HttpClient) Attack() Result {
+func (h HttpClient) Attack(attackNum int) Result {
 	var getLatency, postLatency, putLatency, patchLatency, deleteLatency []int
-	fmt.Printf("#### Start benchmark duration %d\n", requestDuration)
-	for begin := time.Now(); time.Since(begin) < requestDuration; {
+	fmt.Printf("## Attack number %d: Start benchmark for duration %d seconds\n", attackNum, durationSeconds)
+	for begin := time.Now(); time.Since(begin) < h.RequestDuration; {
 		// Random Http Method request
 		for _, request := range h.RandomHttpRequests {
-			start := time.Second / time.Millisecond
+			start := makeTimestamp()
 			res, err := h.HttpClient.Do(request)
 
 			if err == nil && (res.StatusCode == http.StatusOK || res.StatusCode == http.StatusCreated) {
-				end := time.Second / time.Millisecond
+				end := makeTimestamp()
 				latency := end - start
 				switch request.Method {
 				case http.MethodGet:
@@ -94,7 +98,7 @@ func (h HttpClient) Attack() Result {
 			}
 		}
 	}
-	fmt.Println("#### End benchmark")
+	fmt.Printf("## Attack number %d End benchmark\n", attackNum)
 	return Result{
 		Get:    getLatency,
 		Post:   postLatency,
@@ -102,4 +106,17 @@ func (h HttpClient) Attack() Result {
 		Patch:  patchLatency,
 		Delete: deleteLatency,
 	}
+}
+
+func (h HttpClient) GetRandomHttpRequests() []*http.Request {
+	return h.RandomHttpRequests
+}
+
+func shuffleRequest(requests []*http.Request) {
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(requests), func(i, j int) { requests[i], requests[j] = requests[j], requests[i] })
+}
+
+func makeTimestamp() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
 }

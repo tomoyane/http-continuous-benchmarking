@@ -14,7 +14,7 @@ import (
 type Graph interface {
 	Output(charts []chart.Chart, startTime time.Time, endTime time.Time)
 
-	Generate(timeRange []float64) []chart.Chart
+	GenerateCharts(timeRange []float64) []chart.Chart
 }
 
 type GraphImpl struct {
@@ -52,48 +52,35 @@ func (g GraphImpl) Output(charts []chart.Chart, startTime time.Time, endTime tim
 	body := fmt.Sprintf(fmt.Sprintf(`
 	<!DOCTYPE html>
 	<html>
-		<head>
-			<title>Action benchmark results</title>
-		</head>
-		<body>
-			<div>
-				<p>Benchmark time: <b>%s</b> ~ <b>%s</b></p><br>`,
+	<head>
+	<title>Action benchmark results</title>
+	</head>
+	<body>
+	<div>
+	<p>Benchmark time: <b>%s</b> ~ <b>%s</b></p><br>`,
 	startTime.String(), endTime.String()))
 
 	for _, c := range charts {
 		fmt.Println(len(charts))
 		f, _ := os.Create(fmt.Sprintf("%s.png", c.Title))
 		c.Render(chart.PNG, f)
-		body = body + fmt.Sprintf(`<img src="./%s.png" />
-        		<ul>
-          			<li>
-            			<b style="color: red">Red Line:</b> Maximum Percentile
-					</li>
-          			<li>
-            			<b>Black Line:</b> Minimum Percentile
-					</li>
-          			<li>
-            			<b style="color: orange">Orange Line:</b> Average Percentile
-          			</li>
-          			<li>
-            			<b style="color: blue">Blue Line:</b> 99 Percentile
-          			</li>
-          			<li>
-            			<b style="color: green">Green Line:</b> 95 Percentile
-          			</li>
-        		</ul>`, c.Title)
-		time.Sleep(2000)
+		body = body + fmt.Sprintf(`
+		<img src="./%s.png" />
+		<ul>
+		<li><b style="color: red">Red Line:</b> Maximum Percentile</li>
+		<li><b>Black Line:</b> Minimum Percentile</li>
+		<li><b style="color: orange">Orange Line:</b> Average Percentile</li>
+		<li><b style="color: blue">Blue Line:</b> 99 Percentile</li>
+		<li><b style="color: green">Green Line:</b> 95 Percentile</li>
+		</ul>`, c.Title)
 	}
 
-	body = body + `
-      		</div>
-		</body>
-	</html>`
+	body = body + `</div></body></html>`
 
 	ioutil.WriteFile("index.html", []byte(body), 0644)
 }
 
-func (g GraphImpl) Generate(timeRange []float64) []chart.Chart {
+func (g GraphImpl) GenerateCharts(timeRange []float64) []chart.Chart {
 	t := reflect.TypeOf(g)
 	elem := reflect.ValueOf(&g).Elem()
 	cnt := elem.NumField()

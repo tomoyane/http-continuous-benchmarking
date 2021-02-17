@@ -81,11 +81,11 @@ func main() {
 	for i := 1; i <= runtime.TrialNum; i++ {
 		var wg sync.WaitGroup
 		var result Result
-		for i := 0; i < runtime.ThreadNum; i++ {
-			wg.Add(1)
+		for index := 0; index < runtime.ThreadNum; index++ {
+			wg.Add(runtime.ThreadNum)
 			go func(i int) {
 				defer wg.Done()
-				data := client.Attack()
+				data := client.Attack(i)
 				result.Get = append(result.Get, data.Get...)
 				result.Post = append(result.Post, data.Post...)
 				result.Put = append(result.Put, data.Put...)
@@ -107,6 +107,6 @@ func main() {
 
 	metrics := calculator.GetMetricsResult()
 	graph := NewGraph(metrics)
-	charts := graph.Generate(metrics.TimeRange)
+	charts := graph.GenerateCharts(metrics.TimeRange)
 	graph.Output(charts, startTime, endTime)
 }
