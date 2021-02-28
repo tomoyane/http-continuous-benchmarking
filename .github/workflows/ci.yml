@@ -1,0 +1,70 @@
+name: ci
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  skipci:
+    runs-on: ubuntu-latest
+    if: "! contains(github.event.head_commit.message, '[ci skip]')"
+    steps:
+      - run: echo "${{ github.event.head_commit.message }}"
+
+  test:
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/master'
+    steps:
+      - name: setup-go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+        id: go
+
+      - name: checkout
+        uses: actions/checkout@v1
+
+      - name: unit-test
+        run: sh .github/scripts/unit_test.sh
+
+  build:
+    runs-on: ubuntu-latest
+    needs: skipci
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: setup-go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+        id: go
+
+      - name: checkout
+        uses: actions/checkout@v1
+
+      - name: build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UPPY_DRIVER_EMAIL: ${{ secrets.UPPY_DRIVER_EMAIL }}
+        run: sh .github/scripts/build.sh
+
+  coverage-report:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: setup-go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+        id: go
+
+      - name: checkout
+        uses: actions/checkout@v1
+
+      - name: gen-coverage-report
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UPPY_DRIVER_EMAIL: ${{ secrets.UPPY_DRIVER_EMAIL }}
+        run: sh .github/scripts/gen_coverage_report.sh
