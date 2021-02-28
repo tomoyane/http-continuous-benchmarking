@@ -85,4 +85,4 @@ jobs:
       - name: output-coverage
         env:
           COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: sh .github/script/gen_coverage_report_coveralls.sh
+        run: sh .github/scriptis/gen_coverage_report_coveralls.sh
