@@ -3,9 +3,12 @@
 This repository provides a continuous benchmarking.  
 If your project needs benchmark monitoring, it collects performance data by this repository.
 
-|Workflow|Badge|
+|Type|Badge/URL|
 |---|---|
-|CI||
+|CICD|[![ci](https://github.com/tomoyane/http-continuous-benchmarking/actions/workflows/ci.yml/badge.svg)](https://github.com/tomoyane/http-continuous-benchmarking/actions/workflows/ci.yml)|
+|Go Report Card|[![Go Report Card](https://goreportcard.com/badge/github.com/tomoyane/http-continuous-benchmarking)](https://goreportcard.com/report/github.com/tomoyane/http-continuous-benchmarking)|
+|Coveralls|[![Coverage Status](https://coveralls.io/repos/github/tomoyane/http-continuous-benchmarking/badge.svg?branch=main)](https://coveralls.io/github/tomoyane/http-continuous-benchmarking?branch=main)|
+|Coverage report for GitHub Pages|[Coverage report GitHub Pages](https://tomoyane.github.io/http-continuous-benchmarking/#file0)
 
 ### Concept
 * Simple and lightweight benchmark tool
