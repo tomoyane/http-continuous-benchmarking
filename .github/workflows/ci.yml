@@ -46,10 +46,9 @@ jobs:
       - name: build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          UPPY_DRIVER_EMAIL: ${{ secrets.UPPY_DRIVER_EMAIL }}
         run: sh .github/scripts/build.sh
 
-  coverage-report:
+  coverage-report: # Github Pages
     needs: [ build ]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -66,5 +65,23 @@ jobs:
       - name: gen-coverage-report
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          UPPY_DRIVER_EMAIL: ${{ secrets.UPPY_DRIVER_EMAIL }}
         run: sh .github/scripts/gen_coverage_report.sh
+
+  coverage-report-coveralls: # Coveralls
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: setup-go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+        id: go
+
+      - name: checkout
+        uses: actions/checkout@v1
+
+      - name: output-coverage
+        env:
+          COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: sh .github/script/test-converage.sh
