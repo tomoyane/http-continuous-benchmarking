@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 	"time"
 )
@@ -23,7 +24,7 @@ func TestOutput(t *testing.T) {
 				PercentileAvg: 10,
 				Percentile99:  16,
 				Percentile95:  14,
-				Rps:           100,
+				Rps:           29,
 			},
 		},
 		PostMetrics: []MetricsDetail{
@@ -41,7 +42,7 @@ func TestOutput(t *testing.T) {
 				PercentileAvg: 10,
 				Percentile99:  19,
 				Percentile95:  18,
-				Rps:           20,
+				Rps:           22,
 			},
 		},
 		PutMetrics: []MetricsDetail{},
@@ -64,7 +65,7 @@ func TestOutput(t *testing.T) {
 				Rps:           20,
 			},
 		},
-		TimeRange: []float64{15, 30},
+		TimeRange: []float64{5, 10},
 	}
 
 	graph := NewGraph(metrics)
@@ -73,40 +74,6 @@ func TestOutput(t *testing.T) {
 	endTime := time.Now().UTC()
 
 	graph.Output(charts, startTime, endTime)
-}
-
-func TestGenerate_has1Chart(t *testing.T) {
-	metrics := Metrics{
-		GetMetrics: []MetricsDetail{
-			{
-				PercentileMin: 1,
-				PercentileMax: 30,
-				PercentileAvg: 10,
-				Percentile99:  19,
-				Percentile95:  18,
-				Rps:           20,
-			},
-			{
-				PercentileMin: 4,
-				PercentileMax: 21,
-				PercentileAvg: 10,
-				Percentile99:  16,
-				Percentile95:  14,
-				Rps:           100,
-			},
-		},
-		PostMetrics: []MetricsDetail{},
-		PutMetrics: []MetricsDetail{},
-		PatchMetrics: []MetricsDetail{},
-		DeleteMetrics: []MetricsDetail{},
-		TimeRange: []float64{15, 30},
-	}
-
-	graph := NewGraph(metrics)
-	charts := graph.GenerateCharts(metrics.TimeRange)
-	if len(charts) != 1 {
-		t.Fatal("This test has always one chart data")
-	}
 }
 
 func TestGenerate_has2Chart(t *testing.T) {
@@ -118,6 +85,40 @@ func TestGenerate_has2Chart(t *testing.T) {
 				PercentileAvg: 10,
 				Percentile99:  19,
 				Percentile95:  18,
+				Rps:           40,
+			},
+			{
+				PercentileMin: 4,
+				PercentileMax: 21,
+				PercentileAvg: 10,
+				Percentile99:  16,
+				Percentile95:  14,
+				Rps:           45,
+			},
+		},
+		PostMetrics: []MetricsDetail{},
+		PutMetrics: []MetricsDetail{},
+		PatchMetrics: []MetricsDetail{},
+		DeleteMetrics: []MetricsDetail{},
+		TimeRange: []float64{5, 10},
+	}
+
+	graph := NewGraph(metrics)
+	charts := graph.GenerateCharts(metrics.TimeRange)
+	if len(charts) != 2 {
+		t.Fatal(fmt.Sprintf("This test has always 2 chart data. Actual = %d", len(charts)))
+	}
+}
+
+func TestGenerate_has4Chart(t *testing.T) {
+	metrics := Metrics{
+		GetMetrics: []MetricsDetail{
+			{
+				PercentileMin: 1,
+				PercentileMax: 30,
+				PercentileAvg: 10,
+				Percentile99:  19,
+				Percentile95:  18,
 				Rps:           20,
 			},
 			{
@@ -126,7 +127,7 @@ func TestGenerate_has2Chart(t *testing.T) {
 				PercentileAvg: 10,
 				Percentile99:  16,
 				Percentile95:  14,
-				Rps:           100,
+				Rps:           25,
 			},
 		},
 		PostMetrics: []MetricsDetail{
@@ -138,18 +139,26 @@ func TestGenerate_has2Chart(t *testing.T) {
 				Percentile95:  18,
 				Rps:           20,
 			},
+			{
+				PercentileMin: 3,
+				PercentileMax: 33,
+				PercentileAvg: 14,
+				Percentile99:  14,
+				Percentile95:  10,
+				Rps:           24,
+			},
 		},
 		PutMetrics: []MetricsDetail{},
 		PatchMetrics: []MetricsDetail{},
 		DeleteMetrics: []MetricsDetail{},
-		TimeRange: []float64{15, 30},
+		TimeRange: []float64{5, 10},
 	}
 
 	graph := NewGraph(metrics)
 	charts := graph.GenerateCharts(metrics.TimeRange)
 
 	//t.Fatal(charts[0].Series)
-	if len(charts) != 2 {
-		t.Fatal("This test has always two chart data")
+	if len(charts) != 4 {
+		t.Fatal(fmt.Sprintf("This test has always 4 chart data. Actual = %d", len(charts)))
 	}
 }

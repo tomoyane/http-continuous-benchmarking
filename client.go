@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-var durationSeconds = 15
+var durationSeconds = 5
 
 type BenchmarkClient interface {
 	Attack(attackNum int) Result

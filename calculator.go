@@ -80,7 +80,7 @@ func (m Metrics) CalculatePerTrial(requests []int, method string, trialNum int) 
 		PercentileAvg: float64(avgLatency / len(requests)),
 		PercentileMax: float64(maxLatency),
 		PercentileMin: float64(minLatency),
-		Rps:           float64(len(requests)),
+		Rps:           float64(len(requests)) / float64(durationSeconds),
 	}
 
 	switch method {

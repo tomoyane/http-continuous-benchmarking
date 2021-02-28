@@ -17,7 +17,7 @@ func TestCalculate(t *testing.T) {
 	calculator.CalculatePerTrial(testGetRequestLatencies, http.MethodGet, 1)
 	metrics := calculator.GetMetricsResult()
 
-	if int(metrics.GetMetrics[0].Rps) != len(testGetRequestLatencies) {
+	if int(metrics.GetMetrics[0].Rps) != (len(testGetRequestLatencies) / durationSeconds) {
 		t.Fatalf("Not equals RPS. Expect = %d, Actual = %d", len(testGetRequestLatencies), int(metrics.GetMetrics[0].Rps))
 	}
 

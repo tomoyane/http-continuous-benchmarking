@@ -1,4 +1,4 @@
-module github.com/tomoyane/action-benchmark-monitoring
+module github.com/tomoyane/http-continuous-benchmarking
 
 go 1.15
 
