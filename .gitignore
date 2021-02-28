@@ -1,3 +1,16 @@
-action-benchmark-monitoring
+go-benchmarker
 .idea/
 cover.out
+cover.html
+DELETE Latency.png
+DELETE Request per seconds.png
+GET Latency.png
+GET Request per seconds.png
+POST Latency.png
+POST Request per seconds.png
+PUT Latency.png
+PUT Request per seconds.png
+PATCH Latency.png
+PATCH Request per seconds.png
+index.html
+profile.cov
