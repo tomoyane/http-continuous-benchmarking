@@ -57,23 +57,22 @@ func NewBenchmarkClient(url string, methods []string, headers map[string]string,
 	}
 
 	shuffleRequest(requests)
-	fmt.Print("Http request info = ")
+	fmt.Print("HTTP request pattern according to the ratio = ")
 	for _, r := range requests {
 		fmt.Printf("%s ", r.Method)
 	}
 	fmt.Println()
-
 	client := new(http.Client)
 	return HttpClient{
 		HttpClient:         client,
 		RandomHttpRequests: requests,
-		RequestDuration: time.Duration(durationSeconds) * time.Second,
+		RequestDuration:    time.Duration(durationSeconds) * time.Second,
 	}
 }
 
 func (h HttpClient) Attack(attackNum int) Result {
 	var getLatency, postLatency, putLatency, patchLatency, deleteLatency []int
-	fmt.Printf("## Attack number %d: Start benchmark for duration %d seconds\n", attackNum, durationSeconds)
+	fmt.Printf("(Thread-%d): Start attack for duration %d seconds\n", attackNum, durationSeconds)
 	for begin := time.Now(); time.Since(begin) < h.RequestDuration; {
 		// Random Http Method request
 		for _, request := range h.RandomHttpRequests {
@@ -98,7 +97,7 @@ func (h HttpClient) Attack(attackNum int) Result {
 			}
 		}
 	}
-	fmt.Printf("## Attack number %d End benchmark\n", attackNum)
+	fmt.Printf("(Thread-%d): End attack \n", attackNum)
 	return Result{
 		Get:    getLatency,
 		Post:   postLatency,

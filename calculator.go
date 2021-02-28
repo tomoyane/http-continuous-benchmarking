@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"sort"
 
@@ -49,6 +50,9 @@ func NewCalculator(trialNum int) Calculator {
 func (m Metrics) CalculatePerTrial(requests []int, method string, trialNum int) {
 	index := trialNum - 1
 	samplingSize := len(requests)
+	if samplingSize == 0 {
+		return
+	}
 
 	sort.Ints(requests)
 	ignore95Index := m.PercentileN(samplingSize, 95) - 1
@@ -73,6 +77,14 @@ func (m Metrics) CalculatePerTrial(requests []int, method string, trialNum int) 
 			minLatency = currentRps
 		}
 	}
+
+	fmt.Println(fmt.Sprintf("Stats info %s request", method))
+	fmt.Println(fmt.Sprintf("Latency 99  percentile: %f", float64(percentile99)))
+	fmt.Println(fmt.Sprintf("Latency 95  percentile: %f", float64(percentile95)))
+	fmt.Println(fmt.Sprintf("Latency avg percentile: %f", float64(avgLatency / len(requests))))
+	fmt.Println(fmt.Sprintf("Latency max percentile: %f", float64(maxLatency)))
+	fmt.Println(fmt.Sprintf("Latency min percentile: %f", float64(minLatency)))
+	fmt.Println(fmt.Sprintf("Request per seconds:    %f\n", float64(len(requests)) / float64(durationSeconds)))
 
 	detail := MetricsDetail{
 		Percentile99:  float64(percentile99),

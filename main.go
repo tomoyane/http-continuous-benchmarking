@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"sync"
 	"time"
+
+	"net/http"
 )
 
 const (
@@ -59,9 +60,9 @@ const (
 )
 
 func main() {
-	errMsg := ValidateEnv()
-	if errMsg != nil {
-		for _, v := range errMsg {
+	errs := ValidateEnv()
+	if errs != nil {
+		for _, v := range errs {
 			fmt.Println(v)
 		}
 		return
@@ -78,20 +79,24 @@ func main() {
 	calculator := NewCalculator(runtime.TrialNum)
 
 	startTime := time.Now().UTC()
+	fmt.Println(fmt.Sprintf("Start time = %d", startTime.Unix()))
 	for i := 1; i <= runtime.TrialNum; i++ {
 		var wg sync.WaitGroup
 		var result Result
-		for index := 0; index < runtime.ThreadNum; index++ {
-			wg.Add(runtime.ThreadNum)
-			go func(i int) {
-				defer wg.Done()
-				data := client.Attack(i)
+		var mutex = &sync.Mutex{}
+		for index := 1; index <= runtime.ThreadNum; index++ {
+			wg.Add(1)
+			go func(index int) {
+				data := client.Attack(index)
+				mutex.Lock()
 				result.Get = append(result.Get, data.Get...)
 				result.Post = append(result.Post, data.Post...)
 				result.Put = append(result.Put, data.Put...)
 				result.Patch = append(result.Patch, data.Patch...)
 				result.Delete = append(result.Delete, data.Delete...)
-			}(i)
+				mutex.Unlock()
+				wg.Done()
+			}(index)
 		}
 		wg.Wait()
 
@@ -104,6 +109,7 @@ func main() {
 		time.Sleep(1 * time.Second)
 	}
 	endTime := time.Now().UTC()
+	fmt.Println(fmt.Sprintf("End time = %d", endTime.Unix()))
 
 	metrics := calculator.GetMetricsResult()
 	graph := NewGraph(metrics)
