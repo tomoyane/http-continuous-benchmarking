@@ -1,0 +1,958 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/tomoyane/http-continuous-benchmarking/calculator.go (83.9%)</option>
+				
+				<option value="file1">github.com/tomoyane/http-continuous-benchmarking/client.go (90.2%)</option>
+				
+				<option value="file2">github.com/tomoyane/http-continuous-benchmarking/graph.go (95.1%)</option>
+				
+				<option value="file3">github.com/tomoyane/http-continuous-benchmarking/main.go (0.0%)</option>
+				
+				<option value="file4">github.com/tomoyane/http-continuous-benchmarking/runtime.go (100.0%)</option>
+				
+				<option value="file5">github.com/tomoyane/http-continuous-benchmarking/validation.go (78.4%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "math"
+        "sort"
+
+        "net/http"
+)
+
+type Calculator interface {
+        GetMetricsResult() Metrics
+
+        CalculatePerTrial(requests []int, method string, trialNum int)
+
+        PercentileN(size int, percentile int) int
+}
+
+type Metrics struct {
+        // Metrics per trial benchmark
+        GetMetrics    []MetricsDetail
+        PostMetrics   []MetricsDetail
+        PutMetrics    []MetricsDetail
+        PatchMetrics  []MetricsDetail
+        DeleteMetrics []MetricsDetail
+        TimeRange     []float64
+}
+
+type MetricsDetail struct {
+        Percentile99  float64
+        Percentile95  float64
+        PercentileAvg float64
+        PercentileMax float64
+        PercentileMin float64
+        Rps           float64
+}
+
+// Constructor
+func NewCalculator(trialNum int) Calculator <span class="cov2" title="2">{
+        return Metrics{
+                GetMetrics:    make([]MetricsDetail, trialNum),
+                PostMetrics:   make([]MetricsDetail, trialNum),
+                PutMetrics:    make([]MetricsDetail, trialNum),
+                PatchMetrics:  make([]MetricsDetail, trialNum),
+                DeleteMetrics: make([]MetricsDetail, trialNum),
+                TimeRange:     make([]float64, trialNum),
+        }
+}</span>
+
+func (m Metrics) CalculatePerTrial(requests []int, method string, trialNum int) <span class="cov1" title="1">{
+        index := trialNum - 1
+        samplingSize := len(requests)
+
+        sort.Ints(requests)
+        ignore95Index := m.PercentileN(samplingSize, 95) - 1
+        percentile95 := requests[ignore95Index]
+
+        ignore99Index := m.PercentileN(samplingSize, 99) - 1
+        percentile99 := requests[ignore99Index]
+
+        var avgLatency, maxLatency, minLatency, currentRps, beforeRps int
+        for i, v := range requests </span><span class="cov10" title="32">{
+                avgLatency += v
+                beforeRps = currentRps
+                currentRps = v
+                if i == 0 </span><span class="cov1" title="1">{
+                        minLatency = currentRps
+                        maxLatency = currentRps
+                }</span>
+                <span class="cov10" title="32">if currentRps &gt; beforeRps </span><span class="cov9" title="22">{
+                        maxLatency = currentRps
+                }</span>
+                <span class="cov10" title="32">if currentRps &lt; beforeRps </span><span class="cov0" title="0">{
+                        minLatency = currentRps
+                }</span>
+        }
+
+        <span class="cov1" title="1">detail := MetricsDetail{
+                Percentile99:  float64(percentile99),
+                Percentile95:  float64(percentile95),
+                PercentileAvg: float64(avgLatency / len(requests)),
+                PercentileMax: float64(maxLatency),
+                PercentileMin: float64(minLatency),
+                Rps:           float64(len(requests)) / float64(durationSeconds),
+        }
+
+        switch method </span>{
+        case http.MethodGet:<span class="cov1" title="1">
+                m.GetMetrics[index] = detail</span>
+        case http.MethodPost:<span class="cov0" title="0">
+                m.PostMetrics[index] = detail</span>
+        case http.MethodPut:<span class="cov0" title="0">
+                m.PutMetrics[index] = detail</span>
+        case http.MethodPatch:<span class="cov0" title="0">
+                m.PatchMetrics[index] = detail</span>
+        case http.MethodDelete:<span class="cov0" title="0">
+                m.DeleteMetrics[index] = detail</span>
+        }
+        <span class="cov1" title="1">m.TimeRange[index] = float64(trialNum * durationSeconds)</span>
+}
+
+func (m Metrics) GetMetricsResult() Metrics <span class="cov1" title="1">{
+        return m
+}</span>
+
+func (m Metrics) PercentileN(size int, percentile int) int <span class="cov3" title="3">{
+        n := (float64(percentile) / float64(100)) * float64(size)
+        return int(math.Round(n*1) / 1)
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package main
+
+import (
+        "fmt"
+        "io"
+        "strings"
+        "time"
+
+        "math/rand"
+        "net/http"
+)
+
+var durationSeconds = 5
+
+type BenchmarkClient interface {
+        Attack(attackNum int) Result
+
+        GetRandomHttpRequests() []*http.Request
+}
+
+type HttpClient struct {
+        HttpClient         *http.Client
+        RandomHttpRequests []*http.Request
+        RequestDuration    time.Duration
+}
+
+type Result struct {
+        Get    []int
+        Post   []int
+        Put    []int
+        Patch  []int
+        Delete []int
+}
+
+// New BenchmarkClient
+func NewBenchmarkClient(url string, methods []string, headers map[string]string, body io.Reader, percentages map[string]int) BenchmarkClient <span class="cov1" title="2">{
+        var requests []*http.Request
+        for _, method := range methods </span><span class="cov2" title="3">{
+                var request *http.Request
+                for targetMethod, percentage := range percentages </span><span class="cov3" title="5">{
+                        if strings.EqualFold(method, targetMethod) </span><span class="cov2" title="3">{
+                                // GenerateCharts request per percentage method
+                                for i := 0; i &lt; percentage; i++ </span><span class="cov5" title="20">{
+                                        if !strings.EqualFold(method, http.MethodGet) </span><span class="cov3" title="5">{
+                                                request, _ = http.NewRequest(method, url, body)
+                                        }</span> else<span class="cov4" title="15"> {
+                                                request, _ = http.NewRequest(method, url, nil)
+                                        }</span>
+                                        // Set headers
+                                        <span class="cov5" title="20">for headerKey, headerValue := range headers </span><span class="cov5" title="20">{
+                                                request.Header.Set(headerKey, headerValue)
+                                        }</span>
+                                        <span class="cov5" title="20">requests = append(requests, request)</span>
+                                }
+                        }
+                }
+        }
+
+        <span class="cov1" title="2">shuffleRequest(requests)
+        fmt.Print("Http request info = ")
+        for _, r := range requests </span><span class="cov5" title="20">{
+                fmt.Printf("%s ", r.Method)
+        }</span>
+        <span class="cov1" title="2">fmt.Println()
+
+        client := new(http.Client)
+        return HttpClient{
+                HttpClient:         client,
+                RandomHttpRequests: requests,
+                RequestDuration: time.Duration(durationSeconds) * time.Second,
+        }</span>
+}
+
+func (h HttpClient) Attack(attackNum int) Result <span class="cov1" title="1">{
+        var getLatency, postLatency, putLatency, patchLatency, deleteLatency []int
+        fmt.Printf("## Attack number %d: Start benchmark for duration %d seconds\n", attackNum, durationSeconds)
+        for begin := time.Now(); time.Since(begin) &lt; h.RequestDuration; </span><span class="cov5" title="42">{
+                // Random Http Method request
+                for _, request := range h.RandomHttpRequests </span><span class="cov9" title="420">{
+                        start := makeTimestamp()
+                        res, err := h.HttpClient.Do(request)
+
+                        if err == nil &amp;&amp; (res.StatusCode == http.StatusOK || res.StatusCode == http.StatusCreated) </span><span class="cov9" title="420">{
+                                end := makeTimestamp()
+                                latency := end - start
+                                switch request.Method </span>{
+                                case http.MethodGet:<span class="cov9" title="420">
+                                        getLatency = append(getLatency, int(latency))</span>
+                                case http.MethodPost:<span class="cov0" title="0">
+                                        postLatency = append(postLatency, int(latency))</span>
+                                case http.MethodPut:<span class="cov0" title="0">
+                                        putLatency = append(putLatency, int(latency))</span>
+                                case http.MethodPatch:<span class="cov0" title="0">
+                                        patchLatency = append(patchLatency, int(latency))</span>
+                                case http.MethodDelete:<span class="cov0" title="0">
+                                        deleteLatency = append(deleteLatency, int(latency))</span>
+                                }
+                        }
+                }
+        }
+        <span class="cov1" title="1">fmt.Printf("## Attack number %d End benchmark\n", attackNum)
+        return Result{
+                Get:    getLatency,
+                Post:   postLatency,
+                Put:    putLatency,
+                Patch:  patchLatency,
+                Delete: deleteLatency,
+        }</span>
+}
+
+func (h HttpClient) GetRandomHttpRequests() []*http.Request <span class="cov1" title="2">{
+        return h.RandomHttpRequests
+}</span>
+
+func shuffleRequest(requests []*http.Request) <span class="cov2" title="3">{
+        rand.Seed(time.Now().UnixNano())
+        rand.Shuffle(len(requests), func(i, j int) </span><span class="cov5" title="27">{ requests[i], requests[j] = requests[j], requests[i] }</span>)
+}
+
+func makeTimestamp() int64 <span class="cov10" title="840">{
+        return time.Now().UnixNano() / int64(time.Millisecond)
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package main
+
+import (
+        "fmt"
+        "os"
+        "reflect"
+        "strings"
+        "time"
+
+        "io/ioutil"
+        "net/http"
+
+        "github.com/wcharczuk/go-chart/v2"
+)
+
+type Graph interface {
+        Output(charts []chart.Chart, startTime time.Time, endTime time.Time)
+
+        GenerateCharts(timeRange []float64) []chart.Chart
+}
+
+type GraphImpl struct {
+        GetGraphDetail    *GraphDetail
+        PostGraphDetail   *GraphDetail
+        PutGraphDetail    *GraphDetail
+        PatchGraphDetail  *GraphDetail
+        DeleteGraphDetail *GraphDetail
+}
+
+type GraphDetail struct {
+        YPercentile99  []float64
+        YPercentile95  []float64
+        YPercentileAvg []float64
+        YPercentileMax []float64
+        YPercentileMin []float64
+        Rps            []float64
+}
+
+func NewGraph(metrics Metrics) Graph <span class="cov4" title="3">{
+        getGraphDetail := convertMetricsToGraph(metrics.GetMetrics)
+        postGraphDetail := convertMetricsToGraph(metrics.PostMetrics)
+        putGraphDetail := convertMetricsToGraph(metrics.PutMetrics)
+        patchGraphDetail := convertMetricsToGraph(metrics.PatchMetrics)
+        deleteGraphDetail := convertMetricsToGraph(metrics.DeleteMetrics)
+        return GraphImpl{
+                GetGraphDetail:    getGraphDetail,
+                PostGraphDetail:   postGraphDetail,
+                PutGraphDetail:    putGraphDetail,
+                PatchGraphDetail:  patchGraphDetail,
+                DeleteGraphDetail: deleteGraphDetail,
+        }
+}</span>
+
+func (g GraphImpl) Output(charts []chart.Chart, startTime time.Time, endTime time.Time) <span class="cov1" title="1">{
+        body := fmt.Sprintf(fmt.Sprintf(`
+        &lt;!DOCTYPE html&gt;
+        &lt;html&gt;
+        &lt;head&gt;
+        &lt;title&gt;HTTP CB results&lt;/title&gt;
+        &lt;style type="text/css"&gt;
+                .title {text-align: center}
+                .container {display: flex; margin-left:100px; margin-right:100px}
+                .child {flex-grow: 1;}
+                .graph-img {width: 600px}
+        &lt;/style&gt;
+        &lt;/head&gt;
+        &lt;body&gt;
+        &lt;div&gt;
+        &lt;p class="title"&gt;Benchmark time: &lt;b&gt;%s&lt;/b&gt; ~ &lt;b&gt;%s&lt;/b&gt;&lt;/p&gt;&lt;br&gt;`,
+                startTime.String(), endTime.String()))
+
+        for i := 0; i &lt; len(charts)/2; i++ </span><span class="cov4" title="3">{
+                index := i * 2
+
+                body = body + `&lt;div class="container"&gt;`
+                f, _ := os.Create(fmt.Sprintf("%s.png", charts[index].Title))
+                charts[index].Render(chart.PNG, f)
+                body = body + fmt.Sprintf(`
+                &lt;div class="child"&gt;
+                &lt;img src="./%s.png" class="graph-img" /&gt;
+                &lt;ul&gt;
+                &lt;li&gt;&lt;b style="color: red"&gt;Red Line:&lt;/b&gt; Maximum Percentile&lt;/li&gt;
+                &lt;li&gt;&lt;b&gt;Black Line:&lt;/b&gt; Minimum Percentile&lt;/li&gt;
+                &lt;li&gt;&lt;b style="color: orange"&gt;Orange Line:&lt;/b&gt; Average Percentile&lt;/li&gt;
+                &lt;li&gt;&lt;b style="color: blue"&gt;Blue Line:&lt;/b&gt; 99 Percentile&lt;/li&gt;
+                &lt;li&gt;&lt;b style="color: green"&gt;Green Line:&lt;/b&gt; 95 Percentile&lt;/li&gt;
+                &lt;/ul&gt;&lt;/div&gt;`, charts[index].Title)
+
+                f, _ = os.Create(fmt.Sprintf("%s.png", charts[index+1].Title))
+                charts[index+1].Render(chart.PNG, f)
+                body = body + fmt.Sprintf(`
+                &lt;div class="child"&gt;
+                &lt;img src="./%s.png" class="graph-img" /&gt;
+                &lt;ul&gt;
+                &lt;li&gt;&lt;b&gt;Black Line:&lt;/b&gt; Request per seconds&lt;/li&gt;
+                &lt;/ul&gt;&lt;/div&gt;`, charts[index+1].Title)
+                body = body + `&lt;/div&gt;`
+        }</span>
+
+        <span class="cov1" title="1">body = body + `&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;`
+
+        ioutil.WriteFile("index.html", []byte(body), 0644)</span>
+}
+
+func (g GraphImpl) GenerateCharts(timeRange []float64) []chart.Chart <span class="cov4" title="3">{
+        t := reflect.TypeOf(g)
+        elem := reflect.ValueOf(&amp;g).Elem()
+        cnt := elem.NumField()
+        var charts []chart.Chart
+
+        for i := 0; i &lt; cnt; i++ </span><span class="cov10" title="15">{
+                structName := t.Field(i).Name
+                structData := elem.Field(i)
+                detail := structData.Interface().(*GraphDetail)
+                if detail == nil </span><span class="cov8" title="9">{
+                        continue</span>
+                }
+                <span class="cov6" title="6">charts = append(charts, latencyChart(structName, timeRange, *detail))
+                charts = append(charts, rpsChart(structName, timeRange, *detail))</span>
+        }
+        <span class="cov4" title="3">return charts</span>
+}
+
+func convertMetricsToGraph(metricsDetail []MetricsDetail) *GraphDetail <span class="cov10" title="15">{
+        var percentile99, percentile95, percentileAvg, percentileMax, percentileMin, rps []float64
+        for _, v := range metricsDetail </span><span class="cov9" title="12">{
+                if v.PercentileMax == 0 &amp;&amp; v.PercentileMin == 0 &amp;&amp; v.PercentileAvg == 0 &amp;&amp; v.Percentile95 == 0 &amp;&amp; v.Percentile99 == 0 </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                <span class="cov9" title="12">percentile99 = append(percentile99, v.Percentile99)
+                percentile95 = append(percentile95, v.Percentile95)
+                percentileAvg = append(percentileAvg, v.PercentileAvg)
+                percentileMax = append(percentileMax, v.PercentileMax)
+                percentileMin = append(percentileMin, v.PercentileMin)
+                rps = append(rps, v.Rps)</span>
+        }
+
+        <span class="cov10" title="15">if len(percentileMax) == 0 || len(percentileMin) == 0 || len(percentileAvg) == 0 || len(percentile99) == 0 || len(percentile95) == 0 </span><span class="cov8" title="9">{
+                return nil
+        }</span>
+
+        <span class="cov6" title="6">return &amp;GraphDetail{
+                YPercentile95:  percentile95,
+                YPercentile99:  percentile99,
+                YPercentileAvg: percentileAvg,
+                YPercentileMax: percentileMax,
+                YPercentileMin: percentileMin,
+                Rps:            rps,
+        }</span>
+}
+
+func getChartPrefixTitleFrom(structName string) string <span class="cov9" title="12">{
+        var method string
+        if strings.Contains(strings.ToLower(structName), strings.ToLower(http.MethodGet)) </span><span class="cov6" title="6">{
+                method = http.MethodGet
+        }</span> else<span class="cov6" title="6"> if strings.Contains(strings.ToLower(structName), strings.ToLower(http.MethodPost)) </span><span class="cov5" title="4">{
+                method = http.MethodPost
+        }</span> else<span class="cov3" title="2"> if strings.Contains(strings.ToLower(structName), strings.ToLower(http.MethodPut)) </span><span class="cov0" title="0">{
+                method = http.MethodPut
+        }</span> else<span class="cov3" title="2"> if strings.Contains(strings.ToLower(structName), strings.ToLower(http.MethodPatch)) </span><span class="cov0" title="0">{
+                method = http.MethodPatch
+        }</span> else<span class="cov3" title="2"> if strings.Contains(strings.ToLower(structName), strings.ToLower(http.MethodDelete)) </span><span class="cov3" title="2">{
+                method = http.MethodDelete
+        }</span>
+        <span class="cov9" title="12">return method</span>
+}
+
+func latencyChart(structName string, x []float64, detail GraphDetail) chart.Chart <span class="cov6" title="6">{
+        c := chart.Chart{
+                Title: getChartPrefixTitleFrom(structName) + " Latency",
+                XAxis: chart.XAxis{
+                        Name: "Time (sec)",
+                },
+                YAxis: chart.YAxis{
+                        Name: "Latency (ms)",
+                },
+                Series: []chart.Series{
+                        chart.ContinuousSeries{
+                                Name: "99 Percentile",
+                                Style: chart.Style{
+                                        StrokeColor: chart.ColorBlue,
+                                },
+                                XValues: x,
+                                YValues: detail.YPercentile99,
+                        },
+                        chart.ContinuousSeries{
+                                Name: "95 Percentile",
+                                Style: chart.Style{
+                                        StrokeColor: chart.ColorGreen,
+                                },
+                                XValues: x,
+                                YValues: detail.YPercentile95,
+                        },
+                        chart.ContinuousSeries{
+                                Name: "Average Percentile",
+                                Style: chart.Style{
+                                        StrokeColor: chart.ColorOrange,
+                                },
+                                XValues: x,
+                                YValues: detail.YPercentileAvg,
+                        },
+                        chart.ContinuousSeries{
+                                Name: "Maximum Percentile",
+                                Style: chart.Style{
+                                        StrokeColor: chart.ColorRed,
+                                },
+                                XValues: x,
+                                YValues: detail.YPercentileMax,
+                        },
+                        chart.ContinuousSeries{
+                                Name: "Minimum Percentile",
+                                Style: chart.Style{
+                                        StrokeColor: chart.ColorBlack,
+                                },
+                                XValues: x,
+                                YValues: detail.YPercentileMin,
+                        },
+                },
+        }
+        return c
+}</span>
+
+func rpsChart(structName string, x []float64, detail GraphDetail) chart.Chart <span class="cov6" title="6">{
+        c := chart.Chart{
+                Title: getChartPrefixTitleFrom(structName) + " Request per seconds",
+                XAxis: chart.XAxis{
+                        Name: "Time (sec)",
+                },
+                YAxis: chart.YAxis{
+                        Name: "Request per seconds",
+                },
+                Series: []chart.Series{
+                        chart.ContinuousSeries{
+                                Name: "Request per seconds",
+                                Style: chart.Style{
+                                        StrokeColor: chart.ColorBlack,
+                                },
+                                XValues: x,
+                                YValues: detail.Rps,
+                        },
+                },
+        }
+        return c
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package main
+
+import (
+        "fmt"
+        "net/http"
+        "sync"
+        "time"
+)
+
+const (
+        // Required
+        // ex: https://example.com
+        EnvTargetUrl = "TARGET_URL"
+
+        // Required
+        // Comma separated
+        // ex: PUT,GET
+        EnvHttpMethods = "HTTP_METHODS"
+
+        // Required
+        // HashMap data structure
+        // ex: {"Authorization": "Bearer ", "Content-Type": "application/json"}
+        EnvHttpHeaders = "HTTP_HEADERS"
+
+        // Required
+        // Maximum is 3.
+        // ex: 2
+        EnvThreadNum = "THREAD_NUM"
+
+        // Required
+        // Maximum is 20. Takes up to 5 minutes
+        // ex: 20
+        EnvTrialNum = "TRIAL_NUM"
+
+        // Optional
+        // HashMap data structure
+        // If only one http method, always 100 percent set method
+        // ex: {"POST": 4, "GET": 6}
+        EnvReqHttpMethodPercentages = "REQ_HTTP_METHOD_PERCENTAGES"
+
+        // Optional
+        // Using GitHub pages
+        // ex: true || false
+        EnvPermanent = "PERMANENT"
+
+        // Optional
+        // If not empty, always use body when not GET method
+        // ex: {"email": "test@gmail.com", "password": "A_test12345-"}
+        EnvHttpRequestBody = "HTTP_REQ_BODY"
+
+        // Optional
+        // ex: https://slack.com
+        EnvSlackWebHookUrl = "SLACK_WEB_HOOK_URL"
+
+        // Optional
+        // If set this one, notify slack when do not achieve
+        // ex: 200
+        EnvSlackNotifyThreshHoldLatencyMillis = "SLACK_NOTIFY_THRESHOLD_LATENCY_MILLIS"
+)
+
+func main() <span class="cov0" title="0">{
+        errMsg := ValidateEnv()
+        if errMsg != nil </span><span class="cov0" title="0">{
+                for _, v := range errMsg </span><span class="cov0" title="0">{
+                        fmt.Println(v)
+                }</span>
+                <span class="cov0" title="0">return</span>
+        }
+
+        <span class="cov0" title="0">runtime := NewRuntimeInfo()
+        client := NewBenchmarkClient(
+                runtime.TargetUrl,
+                runtime.HttpMethods,
+                runtime.HttpHeaders,
+                runtime.HttpRequestBody,
+                runtime.HttpRequestMethodPercentage,
+        )
+        calculator := NewCalculator(runtime.TrialNum)
+
+        startTime := time.Now().UTC()
+        for i := 1; i &lt;= runtime.TrialNum; i++ </span><span class="cov0" title="0">{
+                var wg sync.WaitGroup
+                var result Result
+                for index := 0; index &lt; runtime.ThreadNum; index++ </span><span class="cov0" title="0">{
+                        wg.Add(runtime.ThreadNum)
+                        go func(i int) </span><span class="cov0" title="0">{
+                                defer wg.Done()
+                                data := client.Attack(i)
+                                result.Get = append(result.Get, data.Get...)
+                                result.Post = append(result.Post, data.Post...)
+                                result.Put = append(result.Put, data.Put...)
+                                result.Patch = append(result.Patch, data.Patch...)
+                                result.Delete = append(result.Delete, data.Delete...)
+                        }</span>(i)
+                }
+                <span class="cov0" title="0">wg.Wait()
+
+                calculator.CalculatePerTrial(result.Get, http.MethodGet, i)
+                calculator.CalculatePerTrial(result.Post, http.MethodPost, i)
+                calculator.CalculatePerTrial(result.Put, http.MethodPut, i)
+                calculator.CalculatePerTrial(result.Patch, http.MethodPatch, i)
+                calculator.CalculatePerTrial(result.Delete, http.MethodDelete, i)
+
+                time.Sleep(1 * time.Second)</span>
+        }
+        <span class="cov0" title="0">endTime := time.Now().UTC()
+
+        metrics := calculator.GetMetricsResult()
+        graph := NewGraph(metrics)
+        charts := graph.GenerateCharts(metrics.TimeRange)
+        graph.Output(charts, startTime, endTime)</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package main
+
+import (
+        "io"
+        "os"
+        "strconv"
+        "strings"
+
+        "encoding/json"
+)
+
+type RuntimeInfo struct {
+        TargetUrl                          string
+        HttpMethods                        []string
+        HttpHeaders                        map[string]string
+        ThreadNum                          int
+        TrialNum                           int
+        HttpRequestMethodPercentage        map[string]int
+        Permanent                          bool
+        HttpRequestBody                    io.Reader
+        SlackWebHookUrl                    string
+        SlackNotifyThreshHoldLatencyMillis int
+}
+
+// New RuntimeInfo from environment variable
+func NewRuntimeInfo() RuntimeInfo <span class="cov10" title="3">{
+        targetUrl := os.Getenv(EnvTargetUrl)
+        methods := strings.Split(os.Getenv(EnvHttpMethods), ",")
+        headers := make(map[string]string)
+        json.Unmarshal([]byte(os.Getenv(EnvHttpHeaders)), &amp;headers)
+        threadNum, _ := strconv.Atoi(os.Getenv(EnvThreadNum))
+        trialNum, _ := strconv.Atoi(os.Getenv(EnvTrialNum))
+        percentages := make(map[string]int)
+        json.Unmarshal([]byte(os.Getenv(EnvReqHttpMethodPercentages)), &amp;percentages)
+        permanent, _ := strconv.ParseBool(os.Getenv(EnvPermanent))
+        body := strings.NewReader(os.Getenv(EnvHttpRequestBody))
+        slackWebHookUrl := os.Getenv(EnvSlackWebHookUrl)
+        slackNotifyThreshHoldLatencyMillis, _ := strconv.Atoi(os.Getenv(EnvSlackNotifyThreshHoldLatencyMillis))
+        return RuntimeInfo{
+                TargetUrl:                          targetUrl,
+                HttpMethods:                        methods,
+                HttpHeaders:                        headers,
+                ThreadNum:                          threadNum,
+                TrialNum:                           trialNum,
+                HttpRequestMethodPercentage:        percentages,
+                Permanent:                          permanent,
+                HttpRequestBody:                    body,
+                SlackWebHookUrl:                    slackWebHookUrl,
+                SlackNotifyThreshHoldLatencyMillis: slackNotifyThreshHoldLatencyMillis,
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package main
+
+import (
+        "fmt"
+        "os"
+        "strconv"
+        "strings"
+
+        "encoding/json"
+        "net/http"
+)
+
+var allowedHttpMethod = []string{
+        http.MethodGet,
+        http.MethodPatch,
+        http.MethodPut,
+        http.MethodPost,
+        http.MethodDelete,
+}
+
+func ValidateEnv() map[string]string <span class="cov0" title="0">{
+        result := make(map[string]string)
+        validateTargetUrl(result)
+        validateHttpMethods(result)
+        validateHttpHeaders(result)
+        validateReqHttpMethodPercentage(result)
+        validateHttpRequestBody(result)
+        validateThreadNum(result)
+        validateTrialNum(result)
+        validatePermanent(result)
+        validateSlackNotifyThreshHoldLatencyMillis(result)
+        return result
+}</span>
+
+// Validate TARGET_URL env
+func validateTargetUrl(result map[string]string) map[string]string <span class="cov3" title="2">{
+        env := os.Getenv(EnvTargetUrl)
+        if validateEmpty(env) </span><span class="cov1" title="1">{
+                result[EnvTargetUrl] = fmt.Sprintf("Environment valiable %s is required.", EnvTargetUrl)
+                return result
+        }</span>
+        <span class="cov1" title="1">if !strings.HasPrefix(env, "http") || !strings.HasPrefix(env, "https") </span><span class="cov1" title="1">{
+                result[EnvTargetUrl] = fmt.Sprintf("Environment valiable %s has only http or https protocol.", EnvTargetUrl)
+                return result
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Validate HTTP_METHODS env
+func validateHttpMethods(result map[string]string) map[string]string <span class="cov3" title="2">{
+        env := os.Getenv(EnvHttpMethods)
+        if validateEmpty(env) </span><span class="cov1" title="1">{
+                result[EnvHttpMethods] = fmt.Sprintf("Environment valiable %s is required.", EnvHttpMethods)
+                return result
+        }</span>
+        <span class="cov1" title="1">isContain := false
+        methods := strings.Split(env, ",")
+        for _, v := range allowedHttpMethod </span><span class="cov5" title="5">{
+                for _, m := range methods </span><span class="cov5" title="5">{
+                        if strings.EqualFold(v, m) </span><span class="cov0" title="0">{
+                                isContain = true
+                                break</span>
+                        }
+                }
+        }
+        <span class="cov1" title="1">if !isContain </span><span class="cov1" title="1">{
+                result[EnvHttpMethods] = fmt.Sprintf("Environment valiable %s is only supprt %v.", EnvHttpMethods, allowedHttpMethod)
+                return result
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Validate HTTP_HEADERS env
+func validateHttpHeaders(result map[string]string) map[string]string <span class="cov3" title="2">{
+        env := os.Getenv(EnvHttpHeaders)
+        if validateEmpty(env) </span><span class="cov1" title="1">{
+                result[EnvHttpHeaders] = fmt.Sprintf("Environment valiable %s is required.", EnvHttpHeaders)
+                return result
+        }</span>
+        <span class="cov1" title="1">headers := make(map[string]interface{})
+        if err := json.Unmarshal([]byte(env), &amp;headers); err != nil </span><span class="cov1" title="1">{
+                result[EnvHttpHeaders] = fmt.Sprintf("Environment valiable %s not hashmap structure.", EnvHttpHeaders)
+                return result
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Validate REQ_HTTP_METHOD_PERCENTAGES env
+func validateReqHttpMethodPercentage(result map[string]string) map[string]string <span class="cov4" title="3">{
+        methods := strings.Split(os.Getenv(EnvHttpMethods), ",")
+        if len(methods) &gt; 1 </span><span class="cov4" title="3">{
+                env := os.Getenv(EnvReqHttpMethodPercentages)
+                if validateEmpty(env) </span><span class="cov1" title="1">{
+                        result[EnvReqHttpMethodPercentages] = fmt.Sprintf("Environment valiable %s is required because method is multiple.", EnvReqHttpMethodPercentages)
+                        return result
+                }</span>
+                <span class="cov3" title="2">percentages := make(map[string]int)
+                if err := json.Unmarshal([]byte(env), &amp;percentages); err != nil </span><span class="cov1" title="1">{
+                        result[EnvReqHttpMethodPercentages] = fmt.Sprintf("Environment valiable %s not hashmap structure.", EnvReqHttpMethodPercentages)
+                        return result
+                }</span>
+
+                <span class="cov1" title="1">var totalPercent int
+                for _, v := range percentages </span><span class="cov3" title="2">{
+                        totalPercent = totalPercent + v
+                }</span>
+                <span class="cov1" title="1">if totalPercent != 10 </span><span class="cov1" title="1">{
+                        result[EnvReqHttpMethodPercentages] = fmt.Sprintf("Environment valiable %s requires percentage of 10.", EnvReqHttpMethodPercentages)
+                        return result
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Validate HTTP_REQ_BODY env
+func validateHttpRequestBody(result map[string]string) map[string]string <span class="cov3" title="2">{
+        env := os.Getenv(EnvHttpRequestBody)
+        if validateEmpty(env) </span><span class="cov1" title="1">{
+                result[EnvHttpRequestBody] = fmt.Sprintf("Environment valiable %s is required.", EnvHttpRequestBody)
+                return result
+        }</span>
+        <span class="cov1" title="1">body := make(map[string]interface{})
+        if err := json.Unmarshal([]byte(env), &amp;body); err != nil </span><span class="cov1" title="1">{
+                result[EnvHttpRequestBody] = fmt.Sprintf("Environment valiable %s not hashmap structure.", EnvHttpRequestBody)
+                return result
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Validate THREAD_NUM env
+func validateThreadNum(result map[string]string) map[string]string <span class="cov3" title="2">{
+        env := os.Getenv(EnvThreadNum)
+        if validateEmpty(env) </span><span class="cov1" title="1">{
+                result[EnvThreadNum] = fmt.Sprintf("Environment valiable %s is required.", EnvThreadNum)
+                return result
+        }</span>
+        <span class="cov1" title="1">if _, err := strconv.Atoi(env); err != nil </span><span class="cov1" title="1">{
+                result[EnvThreadNum] = fmt.Sprintf("Environment valiable %s is not number.", EnvThreadNum)
+                return result
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Validate TRIAL_NUM env
+func validateTrialNum(result map[string]string) map[string]string <span class="cov3" title="2">{
+        env := os.Getenv(EnvTrialNum)
+        if validateEmpty(env) </span><span class="cov1" title="1">{
+                result[EnvTrialNum] = fmt.Sprintf("Environment valiable %s is required.", EnvTrialNum)
+                return result
+        }</span>
+        <span class="cov1" title="1">if _, err := strconv.Atoi(env); err != nil </span><span class="cov1" title="1">{
+                result[EnvTrialNum] = fmt.Sprintf("Environment valiable %s is not number.", EnvTrialNum)
+                return result
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Validate PERMANENT env
+func validatePermanent(result map[string]string) map[string]string <span class="cov3" title="2">{
+        env := os.Getenv(EnvPermanent)
+        if validateEmpty(env) </span><span class="cov1" title="1">{
+                return result
+        }</span>
+        <span class="cov1" title="1">if !strings.EqualFold(env, "true") || !strings.EqualFold(env, "false") </span><span class="cov1" title="1">{
+                result[EnvPermanent] = fmt.Sprintf("Environment valiable %s is true or false.", EnvPermanent)
+                return result
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Validate SLACK_NOTIFY_THRESHOLD_LATENCY_MILLIS env
+func validateSlackNotifyThreshHoldLatencyMillis(result map[string]string) map[string]string <span class="cov3" title="2">{
+        env := os.Getenv(EnvSlackNotifyThreshHoldLatencyMillis)
+        if validateEmpty(env) </span><span class="cov1" title="1">{
+                return result
+        }</span>
+        <span class="cov1" title="1">if _, err := strconv.Atoi(env); err != nil </span><span class="cov1" title="1">{
+                result[EnvSlackNotifyThreshHoldLatencyMillis] = fmt.Sprintf("Environment valiable %s is not number.", EnvSlackNotifyThreshHoldLatencyMillis)
+                return result
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Validate empty
+func validateEmpty(data string) bool <span class="cov10" title="19">{
+        if data == "" </span><span class="cov7" title="9">{
+                return true
+        }</span>
+        <span class="cov8" title="10">return false</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
