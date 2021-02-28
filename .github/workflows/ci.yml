@@ -65,6 +65,7 @@ jobs:
       - name: gen-coverage-report
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
         run: sh .github/scripts/gen_coverage_report.sh
 
   coverage-report-coveralls: # Coveralls

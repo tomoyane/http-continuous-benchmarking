@@ -5,7 +5,7 @@ set -eu
 go test -race -covermode atomic -coverprofile=cover.out ./... && go tool cover -html=cover.out -o index.html
 
 git config --global user.name tomoyane
-git config --global user.email "${UPPY_DRIVER_EMAIL}"
+git config --global user.email "${MY_EMAIL}"
 git remote set-url --push origin https://tomoyane:"${GITHUB_TOKEN}"@github.com/tomoyane/http-continuous-benchmarking.git
 git remote -v
 
