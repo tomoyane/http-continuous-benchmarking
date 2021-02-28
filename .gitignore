@@ -1,4 +1,4 @@
-go-benchmarker
+./http-continuous-benchmarking
 .idea/
 cover.out
 cover.html
