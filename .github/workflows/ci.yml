@@ -45,7 +45,8 @@ jobs:
 
       - name: build
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: sh .github/scripts/build.sh
 
   coverage-report: # Github Pages
