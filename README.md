@@ -9,7 +9,7 @@ If your project needs benchmark monitoring, it collects performance data by this
 |Go Report Card|[![Go Report Card](https://goreportcard.com/badge/github.com/tomoyane/http-continuous-benchmarking)](https://goreportcard.com/report/github.com/tomoyane/http-continuous-benchmarking)|
 |Coveralls|[![Coverage Status](https://coveralls.io/repos/github/tomoyane/http-continuous-benchmarking/badge.svg?branch=main)](https://coveralls.io/github/tomoyane/http-continuous-benchmarking?branch=main)|
 |Coverage report for GitHub Pages|[Coverage report GitHub Pages](https://tomoyane.github.io/http-continuous-benchmarking/#file0)
-|Docker Registry|https://hub.docker.com/repository/docker/tomohito/http-continuous-benckmarking|
+|Docker Registry|[http-continuous-benchmarking](https://hub.docker.com/r/tomohito/http-continuous-benckmarking)|
 
 ### Concept
 * Simple and lightweight benchmark tool
@@ -23,7 +23,44 @@ If your project needs benchmark monitoring, it collects performance data by this
   * Warn and notice when the threshold is reached
 
 ### How to use
-TODO
+Environment variable.  
+**(※) is required.**
+
+|ENV name|Description|Example|
+|---|---|---|
+|TARGET_URL (※)|Request destination URL.|http(s)://xxxxxxx.com/api/v1/users|
+|HTTP_METHODS (※)|Request target HTTP Method comma separated.<br>Support HTTP Method is `GET,PATCH,POST,PUT,DELETE` |GET,POST|
+|HTTP_HEADERS (※)|Request HTTP Headers.|{"Authorization": "Bearer xxx", "Content-Type": "application/json"}|
+|THREAD_NUM (※)|Client thread num.|5|
+|TRIAL_NUM (※)|Number of trials to apply load per load duration.|5|
+|REQ_HTTP_METHOD_RATIO (※)|HTTP method percentage of request.|{"POST": 4, "GET": 6}|
+|PERMANENT|Metrics data permanent.<br>Default is `false`|false|
+|HTTP_REQ_BODY|Request body.<br>If HTTP methods contains other than GET, required this env.|{"email": "test@gmail.com"}|
+
+Basic usage.
+```bash
+# Set required environment variable before execution
+$ export TARGET_URL='https://example.com'
+$ export REQ_HTTP_METHOD_RATIO='{"GET":10}'
+$ export HTTP_METHODS='GET'
+$ export HTTP_HEADERS='{"Content-Type":"application/json"}'
+$ export THREAD_NUM=2
+$ export TRIAL_NUM=2
+$ ./http-continuous-benchmarking
+```
+
+Docker usage.
+```bash
+$ docker pull tomohito/http-continuous-benckmarking
+$ docker run \
+  --env TARGET_URL='https://example.com' \
+  --env REQ_HTTP_METHOD_RATIO='{"GET":10}' \
+  --env HTTP_METHODS='GET' \
+  --env HTTP_HEADERS='{"Content-Type":"application/json"}' \
+  --env THREAD_NUM=2 \
+  --env TRIAL_NUM=2 \
+  -i tomohito/http-continuous-benckmarking
+```
 
 ### Example benchmark result
 #### Metrics report HTML
@@ -33,30 +70,37 @@ TODO
 ```bash
 $ ./http-continuous-benchmarking
 HTTP request pattern according to the ratio = GET GET GET GET GET GET GET GET GET GET
-Start time = 1614513241
-(Thread-2): Start attack for duration 5 seconds
-(Thread-1): Start attack for duration 5 seconds
-(Thread-2): End attack
-(Thread-1): End attack
-Stats info GET request
-Latency 99  percentile: 533.000000
-Latency 95  percentile: 115.000000
-Latency avg percentile: 91.000000
-Latency max percentile: 533.000000
-Latency min percentile: 66.000000
-Request per seconds:    24.000000
+Start warnmup for duration 5 seconds
+End warmup
 
-(Thread-2): Start attack for duration 5 seconds
+Start time = 1614653873
+(Thread-3): Start attack for duration 5 seconds
 (Thread-1): Start attack for duration 5 seconds
+(Thread-2): Start attack for duration 5 seconds
 (Thread-1): End attack
 (Thread-2): End attack
-Stats info GET request
-Latency 99  percentile: 143.000000
-Latency 95  percentile: 127.000000
-Latency avg percentile: 88.000000
-Latency max percentile: 151.000000
-Latency min percentile: 64.000000
-Request per seconds:    24.000000
+(Thread-3): End attack
+GET request stats information
+Latency 99  percentile: 190 milliseconds
+Latency 95  percentile: 172 milliseconds
+Latency avg percentile: 115 milliseconds
+Latency max percentile: 210 milliseconds
+Latency min percentile: 72 milliseconds
+Request per seconds:    30
 
-End time = 1614513260
+(Thread-1): Start attack for duration 5 seconds
+(Thread-3): Start attack for duration 5 seconds
+(Thread-2): Start attack for duration 5 seconds
+(Thread-1): End attack
+(Thread-2): End attack
+(Thread-3): End attack
+GET request stats information
+Latency 99  percentile: 153 milliseconds
+Latency 95  percentile: 129 milliseconds
+Latency avg percentile: 94 milliseconds
+Latency max percentile: 192 milliseconds
+Latency min percentile: 65 milliseconds
+Request per seconds:    36
+
+End time = 1614653894
 ```
