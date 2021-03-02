@@ -13,7 +13,7 @@ git fetch
 git checkout coverage
 
 git add --force index.html
-is_commit=$(git commit -m "[ci skip] Update coverage")
+is_commit=$(git commit -m "[ci skip] Update coverage" | grep "nothing" | wc -l)
 if [ "$is_commit" -eq 0 ]; then
   git remote set-url --push origin https://tomoyane:${GITHUB_TOKEN}@github.com/tomoyane/http-continuous-benchmarking.git
   git push origin HEAD:coverage --force
