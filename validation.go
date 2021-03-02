@@ -102,13 +102,13 @@ func validateHttpHeaders() error {
 func validateReqHttpMethodPercentage() error {
 	methods := strings.Split(os.Getenv(EnvHttpMethods), ",")
 	if len(methods) > 0 {
-		env := os.Getenv(EnvReqHttpMethodPercentages)
+		env := os.Getenv(EnvReqHttpMethodRatio)
 		if validateEmpty(env) {
-			return errors.New(fmt.Sprintf("Environment valiable %s is required.", EnvReqHttpMethodPercentages))
+			return errors.New(fmt.Sprintf("Environment valiable %s is required.", EnvReqHttpMethodRatio))
 		}
 		percentages := make(map[string]int)
 		if err := json.Unmarshal([]byte(env), &percentages); err != nil {
-			return errors.New(fmt.Sprintf("Environment valiable %s not hashmap structure.", EnvReqHttpMethodPercentages))
+			return errors.New(fmt.Sprintf("Environment valiable %s not hashmap structure.", EnvReqHttpMethodRatio))
 		}
 
 		var totalPercent int
@@ -116,7 +116,7 @@ func validateReqHttpMethodPercentage() error {
 			totalPercent = totalPercent + v
 		}
 		if totalPercent != 10 {
-			return errors.New(fmt.Sprintf("Environment valiable %s requires percentage of 10.", EnvReqHttpMethodPercentages))
+			return errors.New(fmt.Sprintf("Environment valiable %s requires percentage of 10.", EnvReqHttpMethodRatio))
 		}
 	}
 	return nil
@@ -125,12 +125,15 @@ func validateReqHttpMethodPercentage() error {
 // Validate HTTP_REQ_BODY env
 func validateHttpRequestBody() error {
 	env := os.Getenv(EnvHttpRequestBody)
-	if validateEmpty(env) {
-		return errors.New(fmt.Sprintf("Environment valiable %s is required.", EnvHttpRequestBody))
-	}
-	body := make(map[string]interface{})
-	if err := json.Unmarshal([]byte(env), &body); err != nil {
-		return errors.New(fmt.Sprintf("Environment valiable %s not hashmap structure.", EnvHttpRequestBody))
+	methods := os.Getenv(EnvHttpMethods)
+	if methods != "" && !strings.Contains(methods, http.MethodGet) {
+		if validateEmpty(env) {
+			return errors.New(fmt.Sprintf("Environment valiable %s is required.", EnvHttpRequestBody))
+		}
+		body := make(map[string]interface{})
+		if err := json.Unmarshal([]byte(env), &body); err != nil {
+			return errors.New(fmt.Sprintf("Environment valiable %s not hashmap structure.", EnvHttpRequestBody))
+		}
 	}
 	return nil
 }

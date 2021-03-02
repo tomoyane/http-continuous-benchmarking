@@ -31,7 +31,7 @@ func NewRuntimeInfo() RuntimeInfo {
 	threadNum, _ := strconv.Atoi(os.Getenv(EnvThreadNum))
 	trialNum, _ := strconv.Atoi(os.Getenv(EnvTrialNum))
 	percentages := make(map[string]int)
-	json.Unmarshal([]byte(os.Getenv(EnvReqHttpMethodPercentages)), &percentages)
+	json.Unmarshal([]byte(os.Getenv(EnvReqHttpMethodRatio)), &percentages)
 	permanent, _ := strconv.ParseBool(os.Getenv(EnvPermanent))
 	body := strings.NewReader(os.Getenv(EnvHttpRequestBody))
 	slackWebHookUrl := os.Getenv(EnvSlackWebHookUrl)

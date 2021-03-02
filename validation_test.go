@@ -10,7 +10,7 @@ func TestValidateEnv(t *testing.T) {
 	os.Setenv(EnvTargetUrl, "")
 	os.Setenv(EnvHttpMethods, "")
 	os.Setenv(EnvHttpHeaders, "")
-	os.Setenv(EnvReqHttpMethodPercentages, "")
+	os.Setenv(EnvReqHttpMethodRatio, "")
 	os.Setenv(EnvHttpRequestBody, "")
 	os.Setenv(EnvThreadNum, "")
 	os.Setenv(EnvTrialNum, "")
@@ -63,27 +63,28 @@ func TestValidateHttpHeader(t *testing.T) {
 }
 
 func TestValidateReqHttpMethodPercentage(t *testing.T) {
-	os.Setenv(EnvHttpMethods, "GET,PUT")
-	os.Setenv(EnvReqHttpMethodPercentages, "")
+	os.Setenv(EnvHttpMethods, "GET,PUT,POST")
+	os.Setenv(EnvReqHttpMethodRatio, "")
 	result := validateReqHttpMethodPercentage()
 	if result == nil {
-		t.Fatalf("Expect empty validation error. %s", EnvReqHttpMethodPercentages)
+		t.Fatalf("Expect empty validation error. %s", EnvReqHttpMethodRatio)
 	}
 
-	os.Setenv(EnvReqHttpMethodPercentages, "Not map data")
+	os.Setenv(EnvReqHttpMethodRatio, "Not map data")
 	result = validateReqHttpMethodPercentage()
 	if result == nil {
-		t.Fatalf("Expect map parser validation error. %s", EnvReqHttpMethodPercentages)
+		t.Fatalf("Expect map parser validation error. %s", EnvReqHttpMethodRatio)
 	}
 
-	os.Setenv(EnvReqHttpMethodPercentages, `{"GET": 7, "PUT":4}`)
+	os.Setenv(EnvReqHttpMethodRatio, `{"GET": 7, "PUT":2, "POST":2}`)
 	result = validateReqHttpMethodPercentage()
 	if result == nil {
-		t.Fatalf("Expect not filled percentage validation error. Just 10 percentage. %s", EnvReqHttpMethodPercentages)
+		t.Fatalf("Expect not filled percentage validation error. Just 10 ratio. %s", EnvReqHttpMethodRatio)
 	}
 }
 
 func TestValidateHttpRequestBody(t *testing.T) {
+	os.Setenv(EnvHttpMethods, "POST")
 	os.Setenv(EnvHttpRequestBody, "")
 	result := validateHttpRequestBody()
 	if result == nil {

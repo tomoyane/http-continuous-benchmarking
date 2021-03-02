@@ -78,13 +78,13 @@ func (m Metrics) CalculatePerTrial(requests []int, method string, trialNum int) 
 		}
 	}
 
-	fmt.Println(fmt.Sprintf("Stats info %s request", method))
-	fmt.Println(fmt.Sprintf("Latency 99  percentile: %f", float64(percentile99)))
-	fmt.Println(fmt.Sprintf("Latency 95  percentile: %f", float64(percentile95)))
-	fmt.Println(fmt.Sprintf("Latency avg percentile: %f", float64(avgLatency / len(requests))))
-	fmt.Println(fmt.Sprintf("Latency max percentile: %f", float64(maxLatency)))
-	fmt.Println(fmt.Sprintf("Latency min percentile: %f", float64(minLatency)))
-	fmt.Println(fmt.Sprintf("Request per seconds:    %f\n", float64(len(requests)) / float64(durationSeconds)))
+	fmt.Println(fmt.Sprintf("%s request stats information", method))
+	fmt.Println(fmt.Sprintf("Latency 99  percentile: %d milliseconds", percentile99))
+	fmt.Println(fmt.Sprintf("Latency 95  percentile: %d milliseconds", percentile95))
+	fmt.Println(fmt.Sprintf("Latency avg percentile: %d milliseconds", int(float64(avgLatency / len(requests)))))
+	fmt.Println(fmt.Sprintf("Latency max percentile: %d milliseconds", maxLatency))
+	fmt.Println(fmt.Sprintf("Latency min percentile: %d milliseconds", minLatency))
+	fmt.Println(fmt.Sprintf("Request per seconds:    %d\n", int(float64(len(requests)) / float64(durationSeconds))))
 
 	detail := MetricsDetail{
 		Percentile99:  float64(percentile99),

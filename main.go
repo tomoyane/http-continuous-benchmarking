@@ -37,7 +37,7 @@ const (
 	// HashMap data structure
 	// If only one http method, always 100 percent set method
 	// ex: {"POST": 4, "GET": 6}
-	EnvReqHttpMethodPercentages = "REQ_HTTP_METHOD_PERCENTAGES"
+	EnvReqHttpMethodRatio = "REQ_HTTP_METHOD_RATIO"
 
 	// Optional
 	// Using GitHub pages
@@ -78,8 +78,12 @@ func main() {
 	)
 	calculator := NewCalculator(runtime.TrialNum)
 
+	// Worm up
+	client.Warmup()
+
+	// Benchmarking
 	startTime := time.Now().UTC()
-	fmt.Println(fmt.Sprintf("Start time = %d", startTime.Unix()))
+	fmt.Println(fmt.Sprintf("Start benchmarking. time = %d\n", startTime.Unix()))
 	for i := 1; i <= runtime.TrialNum; i++ {
 		var wg sync.WaitGroup
 		var result Result
@@ -100,6 +104,7 @@ func main() {
 		}
 		wg.Wait()
 
+		// Calculate metrics per trial
 		calculator.CalculatePerTrial(result.Get, http.MethodGet, i)
 		calculator.CalculatePerTrial(result.Post, http.MethodPost, i)
 		calculator.CalculatePerTrial(result.Put, http.MethodPut, i)
@@ -109,8 +114,9 @@ func main() {
 		time.Sleep(1 * time.Second)
 	}
 	endTime := time.Now().UTC()
-	fmt.Println(fmt.Sprintf("End time = %d", endTime.Unix()))
+	fmt.Println(fmt.Sprintf("End benchmarking. time = %d", endTime.Unix()))
 
+	// Graph
 	metrics := calculator.GetMetricsResult()
 	graph := NewGraph(metrics)
 	charts := graph.GenerateCharts(metrics.TimeRange)

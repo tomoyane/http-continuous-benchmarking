@@ -27,7 +27,7 @@ func setup() {
 	os.Setenv(EnvHttpHeaders, testHttpHeaders)
 	os.Setenv(EnvThreadNum, testThreadNum)
 	os.Setenv(EnvTrialNum, testLoadTimeSeconds)
-	os.Setenv(EnvReqHttpMethodPercentages, testPercentage)
+	os.Setenv(EnvReqHttpMethodRatio, testPercentage)
 	os.Setenv(EnvPermanent, testPermanent)
 	os.Setenv(EnvHttpRequestBody, testBody)
 	os.Setenv(EnvSlackWebHookUrl, testSlackUrl)
@@ -40,7 +40,7 @@ func clean() {
 	os.Setenv(EnvHttpHeaders, "")
 	os.Setenv(EnvThreadNum, "")
 	os.Setenv(EnvTrialNum, "")
-	os.Setenv(EnvReqHttpMethodPercentages, "")
+	os.Setenv(EnvReqHttpMethodRatio, "")
 	os.Setenv(EnvPermanent, "")
 	os.Setenv(EnvHttpRequestBody, "")
 	os.Setenv(EnvSlackWebHookUrl, "")
@@ -79,7 +79,7 @@ func TestNewRuntimeInfo(t *testing.T) {
 	for _, v := range runtime.HttpRequestMethodPercentage {
 		percent := strconv.Itoa(v)
 		if !strings.Contains(testPercentage, percent) {
-			t.Fatalf("%s is not matched", EnvReqHttpMethodPercentages)
+			t.Fatalf("%s is not matched", EnvReqHttpMethodRatio)
 		}
 	}
 

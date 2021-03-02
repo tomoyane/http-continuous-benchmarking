@@ -11,9 +11,12 @@ import (
 )
 
 var durationSeconds = 5
+var warmupSeconds = 5
 
 type BenchmarkClient interface {
 	Attack(attackNum int) Result
+
+	Warmup()
 
 	GetRandomHttpRequests() []*http.Request
 }
@@ -105,6 +108,18 @@ func (h HttpClient) Attack(attackNum int) Result {
 		Patch:  patchLatency,
 		Delete: deleteLatency,
 	}
+}
+
+func (h HttpClient) Warmup() {
+	fmt.Printf("Start warnmup for duration %d seconds\n", warmupSeconds)
+	for begin := time.Now(); time.Since(begin) < h.RequestDuration; {
+		// Random Http Method request
+		for _, request := range h.RandomHttpRequests {
+			h.HttpClient.Do(request)
+		}
+	}
+	fmt.Println("End warmup")
+	fmt.Println()
 }
 
 func (h HttpClient) GetRandomHttpRequests() []*http.Request {
