@@ -20,4 +20,4 @@ jobs:
       - name: build-release
         env:
           TAG_NAME: ${{ github.event.release.tag_name }}
-        run: sh .github/script/build_release.sh
+        run: sh .github/scripts/build_release.sh
