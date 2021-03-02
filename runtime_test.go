@@ -9,16 +9,16 @@ import (
 )
 
 const (
-	testTargetUrl = "https://example.com"
-	testHttpMethods = "GET,PUT"
-	testHttpHeaders = `{"Authorization": "Bearer xxxx"}`
-	testThreadNum = "10"
+	testTargetUrl       = "https://example.com"
+	testHttpMethods     = "GET,PUT"
+	testHttpHeaders     = `{"Authorization": "Bearer xxxx"}`
+	testThreadNum       = "10"
 	testLoadTimeSeconds = "100"
-	testPercentage = `{"GET":5, "PUT":5}`
-	testPermanent = "false"
-	testBody = `{"test_key": "test_value"}`
-	testSlackUrl = "https://slack.com"
-	testSlackThreshold = "200"
+	testPercentage      = `{"GET":5, "PUT":5}`
+	testPermanent       = "false"
+	testBody            = `{"test_key": "test_value"}`
+	testSlackUrl        = "https://slack.com"
+	testSlackThreshold  = "200"
 )
 
 func setup() {

@@ -45,7 +45,7 @@ func TestOutput(t *testing.T) {
 				Rps:           22,
 			},
 		},
-		PutMetrics: []MetricsDetail{},
+		PutMetrics:   []MetricsDetail{},
 		PatchMetrics: []MetricsDetail{},
 		DeleteMetrics: []MetricsDetail{
 			{
@@ -96,11 +96,11 @@ func TestGenerate_has2Chart(t *testing.T) {
 				Rps:           45,
 			},
 		},
-		PostMetrics: []MetricsDetail{},
-		PutMetrics: []MetricsDetail{},
-		PatchMetrics: []MetricsDetail{},
+		PostMetrics:   []MetricsDetail{},
+		PutMetrics:    []MetricsDetail{},
+		PatchMetrics:  []MetricsDetail{},
 		DeleteMetrics: []MetricsDetail{},
-		TimeRange: []float64{5, 10},
+		TimeRange:     []float64{5, 10},
 	}
 
 	graph := NewGraph(metrics)
@@ -148,10 +148,10 @@ func TestGenerate_has4Chart(t *testing.T) {
 				Rps:           24,
 			},
 		},
-		PutMetrics: []MetricsDetail{},
-		PatchMetrics: []MetricsDetail{},
+		PutMetrics:    []MetricsDetail{},
+		PatchMetrics:  []MetricsDetail{},
 		DeleteMetrics: []MetricsDetail{},
-		TimeRange: []float64{5, 10},
+		TimeRange:     []float64{5, 10},
 	}
 
 	graph := NewGraph(metrics)

@@ -39,7 +39,7 @@ func ValidateEnv() []error {
 	if err := validateThreadNum(); err != nil {
 		errs = append(errs, err)
 	}
-	if err:= validateTrialNum(); err != nil {
+	if err := validateTrialNum(); err != nil {
 		errs = append(errs, err)
 	}
 	if err := validatePermanent(); err != nil {
