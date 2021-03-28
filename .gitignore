@@ -1,4 +1,3 @@
-./http-continuous-benchmarking
 .idea/
 cover.out
 cover.html
@@ -14,3 +13,4 @@ PATCH Latency.png
 PATCH Request per seconds.png
 index.html
 profile.cov
+http-continuous-benchmarking
