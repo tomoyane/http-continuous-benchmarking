@@ -15,23 +15,26 @@ type RuntimeInfo struct {
 	HttpHeaders                        map[string]string
 	ThreadNum                          int
 	TrialNum                           int
-	HttpRequestMethodPercentage        map[string]int
+	HttpRequestMethodRatio             map[string]int
 	Permanent                          bool
 	HttpRequestBody                    io.Reader
 	SlackWebHookUrl                    string
 	SlackNotifyThreshHoldLatencyMillis int
 }
 
-// New RuntimeInfo from environment variable
+// NewRuntimeInfo New RuntimeInfo from environment variable
 func NewRuntimeInfo() RuntimeInfo {
 	targetUrl := os.Getenv(EnvTargetUrl)
-	methods := strings.Split(os.Getenv(EnvHttpMethods), ",")
 	headers := make(map[string]string)
 	json.Unmarshal([]byte(os.Getenv(EnvHttpHeaders)), &headers)
 	threadNum, _ := strconv.Atoi(os.Getenv(EnvThreadNum))
 	trialNum, _ := strconv.Atoi(os.Getenv(EnvTrialNum))
-	percentages := make(map[string]int)
-	json.Unmarshal([]byte(os.Getenv(EnvReqHttpMethodRatio)), &percentages)
+	requestMethodRatio := make(map[string]int)
+	json.Unmarshal([]byte(os.Getenv(EnvReqHttpMethodRatio)), &requestMethodRatio)
+	var methods []string
+	for k := range requestMethodRatio {
+		methods = append(methods, k)
+	}
 	permanent, _ := strconv.ParseBool(os.Getenv(EnvPermanent))
 	body := strings.NewReader(os.Getenv(EnvHttpRequestBody))
 	slackWebHookUrl := os.Getenv(EnvSlackWebHookUrl)
@@ -42,7 +45,7 @@ func NewRuntimeInfo() RuntimeInfo {
 		HttpHeaders:                        headers,
 		ThreadNum:                          threadNum,
 		TrialNum:                           trialNum,
-		HttpRequestMethodPercentage:        percentages,
+		HttpRequestMethodRatio:             requestMethodRatio,
 		Permanent:                          permanent,
 		HttpRequestBody:                    body,
 		SlackWebHookUrl:                    slackWebHookUrl,

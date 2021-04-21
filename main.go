@@ -9,51 +9,46 @@ import (
 )
 
 const (
-	// Required
+	// EnvTargetUrl Required
 	// ex: https://example.com
 	EnvTargetUrl = "TARGET_URL"
 
-	// Required
-	// Comma separated
-	// ex: PUT,GET
-	EnvHttpMethods = "HTTP_METHODS"
-
-	// Required
+	// EnvHttpHeaders Required
 	// HashMap data structure
 	// ex: {"Authorization": "Bearer ", "Content-Type": "application/json"}
 	EnvHttpHeaders = "HTTP_HEADERS"
 
-	// Required
+	// EnvThreadNum Required
 	// Maximum is 3.
 	// ex: 2
 	EnvThreadNum = "THREAD_NUM"
 
-	// Required
+	// EnvTrialNum Required
 	// Maximum is 20. Takes up to 5 minutes
 	// ex: 20
 	EnvTrialNum = "TRIAL_NUM"
 
-	// Optional
+	// EnvReqHttpMethodRatio Optional
 	// HashMap data structure
 	// If only one http method, always 100 percent set method
 	// ex: {"POST": 4, "GET": 6}
 	EnvReqHttpMethodRatio = "REQ_HTTP_METHOD_RATIO"
 
-	// Optional
+	// EnvPermanent Optional
 	// Using GitHub pages
 	// ex: true || false
 	EnvPermanent = "PERMANENT"
 
-	// Optional
+	// EnvHttpRequestBody Optional
 	// If not empty, always use body when not GET method
 	// ex: {"email": "test@gmail.com", "password": "A_test12345-"}
 	EnvHttpRequestBody = "HTTP_REQ_BODY"
 
-	// Optional
+	// EnvSlackWebHookUrl Optional
 	// ex: https://slack.com
 	EnvSlackWebHookUrl = "SLACK_WEB_HOOK_URL"
 
-	// Optional
+	// EnvSlackNotifyThreshHoldLatencyMillis Optional
 	// If set this one, notify slack when do not achieve
 	// ex: 200
 	EnvSlackNotifyThreshHoldLatencyMillis = "SLACK_NOTIFY_THRESHOLD_LATENCY_MILLIS"
@@ -74,7 +69,7 @@ func main() {
 		runtime.HttpMethods,
 		runtime.HttpHeaders,
 		runtime.HttpRequestBody,
-		runtime.HttpRequestMethodPercentage,
+		runtime.HttpRequestMethodRatio,
 	)
 	calculator := NewCalculator(runtime.TrialNum)
 
@@ -98,6 +93,7 @@ func main() {
 				result.Put = append(result.Put, data.Put...)
 				result.Patch = append(result.Patch, data.Patch...)
 				result.Delete = append(result.Delete, data.Delete...)
+				result.ErrData = calculator.CalculateMethodErrors(result.ErrData, data.ErrData)
 				mutex.Unlock()
 				wg.Done()
 			}(index)
@@ -105,11 +101,12 @@ func main() {
 		wg.Wait()
 
 		// Calculate metrics per trial
-		calculator.CalculatePerTrial(result.Get, http.MethodGet, i)
-		calculator.CalculatePerTrial(result.Post, http.MethodPost, i)
-		calculator.CalculatePerTrial(result.Put, http.MethodPut, i)
-		calculator.CalculatePerTrial(result.Patch, http.MethodPatch, i)
-		calculator.CalculatePerTrial(result.Delete, http.MethodDelete, i)
+		fmt.Println()
+		calculator.CalculatePerTrial(result.Get, http.MethodGet, i, result.ErrData[http.MethodGet])
+		calculator.CalculatePerTrial(result.Post, http.MethodPost, i, result.ErrData[http.MethodPost])
+		calculator.CalculatePerTrial(result.Put, http.MethodPut, i, result.ErrData[http.MethodPut])
+		calculator.CalculatePerTrial(result.Patch, http.MethodPatch, i, result.ErrData[http.MethodPatch])
+		calculator.CalculatePerTrial(result.Delete, http.MethodDelete, i, result.ErrData[http.MethodDelete])
 
 		time.Sleep(1 * time.Second)
 	}

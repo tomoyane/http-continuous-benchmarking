@@ -28,7 +28,7 @@ type Metrics struct {
 	TimeRange     []float64
 }
 
-// Metrics per trial benchmark
+// MetricsDetail Metrics per trial benchmark
 // 1 trial has that below data
 type MetricsDetail struct {
 	Percentile99  float64
@@ -40,7 +40,7 @@ type MetricsDetail struct {
 	ErrorData     map[int]int
 }
 
-// Constructor
+// NewCalculator Constructor
 func NewCalculator(trialNum int) Calculator {
 	return Metrics{
 		GetMetrics:    make([]MetricsDetail, trialNum),

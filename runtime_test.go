@@ -10,7 +10,6 @@ import (
 
 const (
 	testTargetUrl       = "https://example.com"
-	testHttpMethods     = "GET,PUT"
 	testHttpHeaders     = `{"Authorization": "Bearer xxxx"}`
 	testThreadNum       = "10"
 	testLoadTimeSeconds = "100"
@@ -23,7 +22,6 @@ const (
 
 func setup() {
 	os.Setenv(EnvTargetUrl, testTargetUrl)
-	os.Setenv(EnvHttpMethods, testHttpMethods)
 	os.Setenv(EnvHttpHeaders, testHttpHeaders)
 	os.Setenv(EnvThreadNum, testThreadNum)
 	os.Setenv(EnvTrialNum, testLoadTimeSeconds)
@@ -36,7 +34,6 @@ func setup() {
 
 func clean() {
 	os.Setenv(EnvTargetUrl, "")
-	os.Setenv(EnvHttpMethods, "")
 	os.Setenv(EnvHttpHeaders, "")
 	os.Setenv(EnvThreadNum, "")
 	os.Setenv(EnvTrialNum, "")
@@ -52,12 +49,6 @@ func TestNewRuntimeInfo(t *testing.T) {
 	runtime := NewRuntimeInfo()
 	if runtime.TargetUrl != testTargetUrl {
 		t.Fatalf("%s is not matched", EnvTargetUrl)
-	}
-
-	for _, v := range runtime.HttpMethods {
-		if !strings.Contains(testHttpMethods, v) {
-			t.Fatalf("%s is not matched", EnvHttpMethods)
-		}
 	}
 
 	for _, v := range runtime.HttpHeaders {
@@ -76,10 +67,16 @@ func TestNewRuntimeInfo(t *testing.T) {
 		t.Fatalf("%s is not matched", EnvTrialNum)
 	}
 
-	for _, v := range runtime.HttpRequestMethodPercentage {
+	for _, v := range runtime.HttpRequestMethodRatio {
 		percent := strconv.Itoa(v)
 		if !strings.Contains(testPercentage, percent) {
 			t.Fatalf("%s is not matched", EnvReqHttpMethodRatio)
+		}
+	}
+
+	for _, v := range runtime.HttpMethods {
+		if !strings.Contains("GET,PUT", v) {
+			t.Fatalf("Http Method is not matched")
 		}
 	}
 
