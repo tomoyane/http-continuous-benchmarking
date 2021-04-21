@@ -14,7 +14,7 @@ var testGetRequestLatencies = []int{
 
 func TestCalculate(t *testing.T) {
 	calculator := NewCalculator(15)
-	calculator.CalculatePerTrial(testGetRequestLatencies, http.MethodGet, 1)
+	calculator.CalculatePerTrial(testGetRequestLatencies, http.MethodGet, 1, map[int]int{})
 	metrics := calculator.GetMetricsResult()
 
 	if int(metrics.GetMetrics[0].Rps) != (len(testGetRequestLatencies) / durationSeconds) {

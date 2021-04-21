@@ -30,7 +30,6 @@ Environment variable.
 |ENV name|Description|Example|
 |---|---|---|
 |TARGET_URL (※)|Request destination URL.|http(s)://xxxxxxx.com/api/v1/users|
-|HTTP_METHODS (※)|Request target HTTP Method comma separated.<br>Support HTTP Method is `GET,PATCH,POST,PUT,DELETE` |GET,POST|
 |HTTP_HEADERS (※)|Request HTTP Headers.|{"Authorization": "Bearer xxx", "Content-Type": "application/json"}|
 |THREAD_NUM (※)|Client thread num.|5|
 |TRIAL_NUM (※)|Number of trials to apply load per load duration.|5|
@@ -81,6 +80,7 @@ Start time = 1614653873
 (Thread-1): End attack
 (Thread-2): End attack
 (Thread-3): End attack
+
 GET request stats information
 Latency 99  percentile: 190 milliseconds
 Latency 95  percentile: 172 milliseconds
@@ -95,6 +95,7 @@ Request per seconds:    30
 (Thread-1): End attack
 (Thread-2): End attack
 (Thread-3): End attack
+
 GET request stats information
 Latency 99  percentile: 153 milliseconds
 Latency 95  percentile: 129 milliseconds

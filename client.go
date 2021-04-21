@@ -28,14 +28,15 @@ type HttpClient struct {
 }
 
 type Result struct {
-	Get    []int
-	Post   []int
-	Put    []int
-	Patch  []int
-	Delete []int
+	Get     []int
+	Post    []int
+	Put     []int
+	Patch   []int
+	Delete  []int
+	ErrData map[string]map[int]int
 }
 
-// New BenchmarkClient
+// NewBenchmarkClient New BenchmarkClient
 func NewBenchmarkClient(url string, methods []string, headers map[string]string, body io.Reader, percentages map[string]int) BenchmarkClient {
 	var requests []*http.Request
 	for _, method := range methods {
@@ -75,14 +76,15 @@ func NewBenchmarkClient(url string, methods []string, headers map[string]string,
 
 func (h HttpClient) Attack(attackNum int) Result {
 	var getLatency, postLatency, putLatency, patchLatency, deleteLatency []int
+	errData := make(map[string]map[int]int)
 	fmt.Printf("(Thread-%d): Start attack for duration %d seconds\n", attackNum, durationSeconds)
 	for begin := time.Now(); time.Since(begin) < h.RequestDuration; {
 		// Random Http Method request
 		for _, request := range h.RandomHttpRequests {
 			start := makeTimestamp()
 			res, err := h.HttpClient.Do(request)
-
-			if err == nil && (res.StatusCode == http.StatusOK || res.StatusCode == http.StatusCreated) {
+			if err != nil {
+			} else if res.StatusCode == http.StatusOK || res.StatusCode == http.StatusCreated {
 				end := makeTimestamp()
 				latency := end - start
 				switch request.Method {
@@ -97,16 +99,23 @@ func (h HttpClient) Attack(attackNum int) Result {
 				case http.MethodDelete:
 					deleteLatency = append(deleteLatency, int(latency))
 				}
+			} else {
+				if _, ok := errData[request.Method]; ok {
+					errData[request.Method][res.StatusCode] = errData[request.Method][res.StatusCode] + 1
+				} else {
+					errData[request.Method] = map[int]int{res.StatusCode: 1}
+				}
 			}
 		}
 	}
 	fmt.Printf("(Thread-%d): End attack \n", attackNum)
 	return Result{
-		Get:    getLatency,
-		Post:   postLatency,
-		Put:    putLatency,
-		Patch:  patchLatency,
-		Delete: deleteLatency,
+		Get:     getLatency,
+		Post:    postLatency,
+		Put:     putLatency,
+		Patch:   patchLatency,
+		Delete:  deleteLatency,
+		ErrData: errData,
 	}
 }
 

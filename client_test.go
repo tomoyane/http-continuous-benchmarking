@@ -8,8 +8,8 @@ import (
 func TestGetRandomHttpRequests(t *testing.T) {
 	setup()
 	runtime := NewRuntimeInfo()
-	runtime.HttpRequestMethodPercentage = map[string]int{"GET": 5, "PUT": 5}
-	client := NewBenchmarkClient(runtime.TargetUrl, runtime.HttpMethods, runtime.HttpHeaders, runtime.HttpRequestBody, runtime.HttpRequestMethodPercentage)
+	runtime.HttpRequestMethodRatio = map[string]int{"GET": 5, "PUT": 5}
+	client := NewBenchmarkClient(runtime.TargetUrl, runtime.HttpMethods, runtime.HttpHeaders, runtime.HttpRequestBody, runtime.HttpRequestMethodRatio)
 	requests := client.GetRandomHttpRequests()
 
 	if len(requests) != 10 {
@@ -72,8 +72,8 @@ func TestAttack(t *testing.T) {
 	durationSeconds = 3
 	runtime := NewRuntimeInfo()
 	runtime.HttpMethods = []string{http.MethodGet}
-	runtime.HttpRequestMethodPercentage = map[string]int{"GET": 10}
-	client := NewBenchmarkClient(runtime.TargetUrl, runtime.HttpMethods, runtime.HttpHeaders, runtime.HttpRequestBody, runtime.HttpRequestMethodPercentage)
+	runtime.HttpRequestMethodRatio = map[string]int{"GET": 10}
+	client := NewBenchmarkClient(runtime.TargetUrl, runtime.HttpMethods, runtime.HttpHeaders, runtime.HttpRequestBody, runtime.HttpRequestMethodRatio)
 
 	result := client.Attack(1)
 	if len(result.Get) == 0 {

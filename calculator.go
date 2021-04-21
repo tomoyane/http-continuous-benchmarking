@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strconv"
 
 	"net/http"
 )
@@ -11,13 +12,14 @@ import (
 type Calculator interface {
 	GetMetricsResult() Metrics
 
-	CalculatePerTrial(requests []int, method string, trialNum int)
+	CalculatePerTrial(requests []int, method string, trialNum int, errData map[int]int)
+
+	CalculateMethodErrors(srcData map[string]map[int]int, dstData map[string]map[int]int) map[string]map[int]int
 
 	PercentileN(size int, percentile int) int
 }
 
 type Metrics struct {
-	// Metrics per trial benchmark
 	GetMetrics    []MetricsDetail
 	PostMetrics   []MetricsDetail
 	PutMetrics    []MetricsDetail
@@ -26,6 +28,8 @@ type Metrics struct {
 	TimeRange     []float64
 }
 
+// MetricsDetail Metrics per trial benchmark
+// 1 trial has that below data
 type MetricsDetail struct {
 	Percentile99  float64
 	Percentile95  float64
@@ -33,9 +37,10 @@ type MetricsDetail struct {
 	PercentileMax float64
 	PercentileMin float64
 	Rps           float64
+	ErrorData     map[int]int
 }
 
-// Constructor
+// NewCalculator Constructor
 func NewCalculator(trialNum int) Calculator {
 	return Metrics{
 		GetMetrics:    make([]MetricsDetail, trialNum),
@@ -47,9 +52,14 @@ func NewCalculator(trialNum int) Calculator {
 	}
 }
 
-func (m Metrics) CalculatePerTrial(requests []int, method string, trialNum int) {
+func (m Metrics) CalculatePerTrial(requests []int, method string, trialNum int, errData map[int]int) {
 	index := trialNum - 1
 	samplingSize := len(requests)
+	if samplingSize == 0 && len(errData) > 0 {
+		detail := MetricsDetail{ErrorData: errData}
+		detail.outputOnlyErrorStats(method)
+		return
+	}
 	if samplingSize == 0 {
 		return
 	}
@@ -78,14 +88,6 @@ func (m Metrics) CalculatePerTrial(requests []int, method string, trialNum int) 
 		}
 	}
 
-	fmt.Println(fmt.Sprintf("%s request stats information", method))
-	fmt.Println(fmt.Sprintf("Latency 99  percentile: %d milliseconds", percentile99))
-	fmt.Println(fmt.Sprintf("Latency 95  percentile: %d milliseconds", percentile95))
-	fmt.Println(fmt.Sprintf("Latency avg percentile: %d milliseconds", int(float64(avgLatency/len(requests)))))
-	fmt.Println(fmt.Sprintf("Latency max percentile: %d milliseconds", maxLatency))
-	fmt.Println(fmt.Sprintf("Latency min percentile: %d milliseconds", minLatency))
-	fmt.Println(fmt.Sprintf("Request per seconds:    %d\n", int(float64(len(requests))/float64(durationSeconds))))
-
 	detail := MetricsDetail{
 		Percentile99:  float64(percentile99),
 		Percentile95:  float64(percentile95),
@@ -93,7 +95,9 @@ func (m Metrics) CalculatePerTrial(requests []int, method string, trialNum int) 
 		PercentileMax: float64(maxLatency),
 		PercentileMin: float64(minLatency),
 		Rps:           float64(len(requests)) / float64(durationSeconds),
+		ErrorData:     errData,
 	}
+	detail.outputStats(method)
 
 	switch method {
 	case http.MethodGet:
@@ -110,6 +114,25 @@ func (m Metrics) CalculatePerTrial(requests []int, method string, trialNum int) 
 	m.TimeRange[index] = float64(trialNum * durationSeconds)
 }
 
+func (m Metrics) CalculateMethodErrors(srcData map[string]map[int]int, dstData map[string]map[int]int) map[string]map[int]int {
+	if srcData != nil {
+		for method1, errorData1 := range dstData {
+			for k1, v1 := range errorData1 {
+				for method2, errorData2 := range srcData {
+					if method1 == method2 {
+						for k2, v2 := range errorData2 {
+							if k1 == k2 {
+								dstData[method1][k1] = v1 + v2
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return dstData
+}
+
 func (m Metrics) GetMetricsResult() Metrics {
 	return m
 }
@@ -117,4 +140,28 @@ func (m Metrics) GetMetricsResult() Metrics {
 func (m Metrics) PercentileN(size int, percentile int) int {
 	n := (float64(percentile) / float64(100)) * float64(size)
 	return int(math.Round(n*1) / 1)
+}
+
+func (md MetricsDetail) outputStats(method string) {
+	fmt.Println(fmt.Sprintf("%s request stats information", method))
+	fmt.Println(fmt.Sprintf("Latency 99  percentile: %d milliseconds", int(md.Percentile99)))
+	fmt.Println(fmt.Sprintf("Latency 95  percentile: %d milliseconds", int(md.Percentile95)))
+	fmt.Println(fmt.Sprintf("Latency avg percentile: %d milliseconds", int(md.PercentileAvg)))
+	fmt.Println(fmt.Sprintf("Latency max percentile: %d milliseconds", int(md.PercentileMax)))
+	fmt.Println(fmt.Sprintf("Latency min percentile: %d milliseconds", int(md.PercentileMin)))
+	fmt.Println(fmt.Sprintf("Request per seconds:    %d", int(md.Rps)))
+	if md.ErrorData != nil {
+		for k, v := range md.ErrorData {
+			fmt.Println(fmt.Sprintf("Error status code %d count: ", k) + strconv.Itoa(v))
+		}
+	}
+	fmt.Println()
+}
+
+func (md MetricsDetail) outputOnlyErrorStats(method string) {
+	fmt.Println(fmt.Sprintf("%s request stats information", method))
+	for k, v := range md.ErrorData {
+		fmt.Println(fmt.Sprintf("Error status code %d count: ", k) + strconv.Itoa(v))
+	}
+	fmt.Println()
 }

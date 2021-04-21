@@ -1,0 +1,29 @@
+name: 'http-continuous-benchmarking'
+author: 'tomoyane'
+description: 'This GitHub Actions provides a http continuous benchmarking'
+inputs:
+  env-target-url:
+    description: 'Request target url. Start http(s)://xxxxx.'
+    required: true
+  env-http-headers:
+    description: 'Request HTTP Headers. {} format.'
+    required: true
+    default: '{"Content-Type": "application/json"}'
+  env-thread-num:
+    description: 'Benchmark thread num.'
+    required: true
+    default: '1'
+  env-trial-num:
+    description: 'Benchmark trial number while 5seconds. If its 5times, the benchmark try 5times * 5seconds. Ex: Case of API 100rps, 100(rps) * 5(seconds) * 5(times)'
+    required: true
+    default: '1'
+  env-req-http-method-ratio:
+    description: 'Request HTTP Methods ratio. {} format.'
+    required: true
+    default: '{"GET": 10}'
+  env-req-body:
+    description: 'HTTP Request Body. {} format. If you use PUT or PATCH or POST, its required.'
+    required: false
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
