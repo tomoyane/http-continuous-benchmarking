@@ -11,47 +11,47 @@ import (
 const (
 	// EnvTargetUrl Required
 	// ex: https://example.com
-	EnvTargetUrl = "TARGET_URL"
+	EnvTargetUrl = "INPUT_TARGET_URL"
 
 	// EnvHttpHeaders Required
 	// HashMap data structure
 	// ex: {"Authorization": "Bearer ", "Content-Type": "application/json"}
-	EnvHttpHeaders = "HTTP_HEADERS"
+	EnvHttpHeaders = "INPUT_HTTP_HEADERS"
 
 	// EnvThreadNum Required
 	// Maximum is 3.
 	// ex: 2
-	EnvThreadNum = "THREAD_NUM"
+	EnvThreadNum = "INPUT_THREAD_NUM"
 
 	// EnvTrialNum Required
 	// Maximum is 20. Takes up to 5 minutes
 	// ex: 20
-	EnvTrialNum = "TRIAL_NUM"
+	EnvTrialNum = "INPUT_TRIAL_NUM"
 
 	// EnvReqHttpMethodRatio Optional
 	// HashMap data structure
 	// If only one http method, always 100 percent set method
 	// ex: {"POST": 4, "GET": 6}
-	EnvReqHttpMethodRatio = "REQ_HTTP_METHOD_RATIO"
+	EnvReqHttpMethodRatio = "INPUT_REQ_HTTP_METHOD_RATIO"
 
 	// EnvPermanent Optional
 	// Using GitHub pages
 	// ex: true || false
-	EnvPermanent = "PERMANENT"
+	EnvPermanent = "INPUT_PERMANENT"
 
 	// EnvHttpRequestBody Optional
 	// If not empty, always use body when not GET method
 	// ex: {"email": "test@gmail.com", "password": "A_test12345-"}
-	EnvHttpRequestBody = "HTTP_REQ_BODY"
+	EnvHttpRequestBody = "INPUT_HTTP_REQ_BODY"
 
 	// EnvSlackWebHookUrl Optional
 	// ex: https://slack.com
-	EnvSlackWebHookUrl = "SLACK_WEB_HOOK_URL"
+	EnvSlackWebHookUrl = "INPUT_SLACK_WEB_HOOK_URL"
 
 	// EnvSlackNotifyThreshHoldLatencyMillis Optional
 	// If set this one, notify slack when do not achieve
 	// ex: 200
-	EnvSlackNotifyThreshHoldLatencyMillis = "SLACK_NOTIFY_THRESHOLD_LATENCY_MILLIS"
+	EnvSlackNotifyThreshHoldLatencyMillis = "INPUT_SLACK_NOTIFY_THRESHOLD_LATENCY_MILLIS"
 )
 
 func main() {
