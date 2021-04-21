@@ -7,7 +7,7 @@ jobs:
     steps:
       - name: Hello world action step
         id: hello
-        uses: tomoyane/http-continuous-benchmarking@v1
+        uses: tomoyane/http-continuous-benchmarking
         with:
           env-target-url: 'https://example.com'
           env-http-headers: '{"Content-Type":"application/json"}'
