@@ -24,10 +24,7 @@ func ValidateEnv() []error {
 	if err := validateTargetUrl(); err != nil {
 		errs = append(errs, err)
 	}
-	if err := validateReqHttpMethodPercentage(); err != nil {
-		errs = append(errs, err)
-	}
-	if err := validateHttpMethods(); err != nil {
+	if err := validateReqHttpMethodRatio(); err != nil {
 		errs = append(errs, err)
 	}
 	if err := validateHttpHeaders(); err != nil {
@@ -63,28 +60,6 @@ func validateTargetUrl() error {
 	return nil
 }
 
-// Validate HTTP_METHODS env
-func validateHttpMethods() error {
-	env := os.Getenv(EnvHttpMethods)
-	if validateEmpty(env) {
-		return errors.New(fmt.Sprintf("Environment valiable %s is required.", EnvHttpMethods))
-	}
-	isContain := false
-	methods := strings.Split(env, ",")
-	for _, v := range allowedHttpMethod {
-		for _, m := range methods {
-			if strings.EqualFold(v, m) {
-				isContain = true
-				break
-			}
-		}
-	}
-	if !isContain {
-		return errors.New(fmt.Sprintf("Environment valiable %s is only supprt %v.", EnvHttpMethods, allowedHttpMethod))
-	}
-	return nil
-}
-
 // Validate HTTP_HEADERS env
 func validateHttpHeaders() error {
 	env := os.Getenv(EnvHttpHeaders)
@@ -98,26 +73,23 @@ func validateHttpHeaders() error {
 	return nil
 }
 
-// Validate REQ_HTTP_METHOD_PERCENTAGES env
-func validateReqHttpMethodPercentage() error {
-	methods := strings.Split(os.Getenv(EnvHttpMethods), ",")
-	if len(methods) > 0 {
-		env := os.Getenv(EnvReqHttpMethodRatio)
-		if validateEmpty(env) {
-			return errors.New(fmt.Sprintf("Environment valiable %s is required.", EnvReqHttpMethodRatio))
-		}
-		percentages := make(map[string]int)
-		if err := json.Unmarshal([]byte(env), &percentages); err != nil {
-			return errors.New(fmt.Sprintf("Environment valiable %s not hashmap structure.", EnvReqHttpMethodRatio))
-		}
+// Validate REQ_HTTP_METHOD_RATIO env
+func validateReqHttpMethodRatio() error {
+	env := os.Getenv(EnvReqHttpMethodRatio)
+	if validateEmpty(env) {
+		return errors.New(fmt.Sprintf("Environment valiable %s is required.", EnvReqHttpMethodRatio))
+	}
+	percentages := make(map[string]int)
+	if err := json.Unmarshal([]byte(env), &percentages); err != nil {
+		return errors.New(fmt.Sprintf("Environment valiable %s not hashmap structure.", EnvReqHttpMethodRatio))
+	}
 
-		var totalPercent int
-		for _, v := range percentages {
-			totalPercent = totalPercent + v
-		}
-		if totalPercent != 10 {
-			return errors.New(fmt.Sprintf("Environment valiable %s requires percentage of 10.", EnvReqHttpMethodRatio))
-		}
+	var totalPercent int
+	for _, v := range percentages {
+		totalPercent = totalPercent + v
+	}
+	if totalPercent != 10 {
+		return errors.New(fmt.Sprintf("Environment valiable %s requires percentage of 10.", EnvReqHttpMethodRatio))
 	}
 	return nil
 }
@@ -125,8 +97,8 @@ func validateReqHttpMethodPercentage() error {
 // Validate HTTP_REQ_BODY env
 func validateHttpRequestBody() error {
 	env := os.Getenv(EnvHttpRequestBody)
-	methods := os.Getenv(EnvHttpMethods)
-	if methods != "" && !strings.Contains(methods, http.MethodGet) {
+	ratio := os.Getenv(EnvReqHttpMethodRatio)
+	if strings.Contains(ratio, http.MethodPost) || strings.Contains(ratio, http.MethodPut) || strings.Contains(ratio, http.MethodPatch){
 		if validateEmpty(env) {
 			return errors.New(fmt.Sprintf("Environment valiable %s is required.", EnvHttpRequestBody))
 		}

@@ -8,7 +8,6 @@ import (
 func TestValidateEnv(t *testing.T) {
 	os.Setenv(EnvSlackNotifyThreshHoldLatencyMillis, "invalid")
 	os.Setenv(EnvTargetUrl, "")
-	os.Setenv(EnvHttpMethods, "")
 	os.Setenv(EnvHttpHeaders, "")
 	os.Setenv(EnvReqHttpMethodRatio, "")
 	os.Setenv(EnvHttpRequestBody, "")
@@ -34,20 +33,6 @@ func TestValidateTargetUrl(t *testing.T) {
 	}
 }
 
-func TestValidateHttpMethods(t *testing.T) {
-	os.Setenv(EnvHttpMethods, "")
-	result := validateHttpMethods()
-	if result == nil {
-		t.Fatalf("Expect empty validation error. %s", EnvHttpMethods)
-	}
-
-	os.Setenv(EnvHttpMethods, "OPTION")
-	result = validateHttpMethods()
-	if result == nil {
-		t.Fatalf("Expect not allowed validation error. %s", EnvHttpMethods)
-	}
-}
-
 func TestValidateHttpHeader(t *testing.T) {
 	os.Setenv(EnvHttpHeaders, "")
 	result := validateHttpHeaders()
@@ -63,28 +48,26 @@ func TestValidateHttpHeader(t *testing.T) {
 }
 
 func TestValidateReqHttpMethodPercentage(t *testing.T) {
-	os.Setenv(EnvHttpMethods, "GET,PUT,POST")
 	os.Setenv(EnvReqHttpMethodRatio, "")
-	result := validateReqHttpMethodPercentage()
+	result := validateReqHttpMethodRatio()
 	if result == nil {
 		t.Fatalf("Expect empty validation error. %s", EnvReqHttpMethodRatio)
 	}
 
 	os.Setenv(EnvReqHttpMethodRatio, "Not map data")
-	result = validateReqHttpMethodPercentage()
+	result = validateReqHttpMethodRatio()
 	if result == nil {
 		t.Fatalf("Expect map parser validation error. %s", EnvReqHttpMethodRatio)
 	}
 
 	os.Setenv(EnvReqHttpMethodRatio, `{"GET": 7, "PUT":2, "POST":2}`)
-	result = validateReqHttpMethodPercentage()
+	result = validateReqHttpMethodRatio()
 	if result == nil {
 		t.Fatalf("Expect not filled percentage validation error. Just 10 ratio. %s", EnvReqHttpMethodRatio)
 	}
 }
 
 func TestValidateHttpRequestBody(t *testing.T) {
-	os.Setenv(EnvHttpMethods, "POST")
 	os.Setenv(EnvHttpRequestBody, "")
 	result := validateHttpRequestBody()
 	if result == nil {
