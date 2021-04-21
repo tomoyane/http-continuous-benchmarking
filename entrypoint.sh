@@ -1,2 +1,2 @@
 #!/bin/sh
-./http-continuous-benchmarking
+/tomoyane/http-continuous-benchmarking
