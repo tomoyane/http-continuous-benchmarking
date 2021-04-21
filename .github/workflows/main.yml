@@ -5,8 +5,8 @@ jobs:
     runs-on: ubuntu-latest
     name: TestJob
     steps:
-      - name: Hello world action step
-        id: hello
+      - name: Benchmark
+        id: benchmark
         uses: tomoyane/http-continuous-benchmarking@1.0.0
         with:
           env-target-url: 'https://example.com'
@@ -14,5 +14,5 @@ jobs:
           env-thread-num: '1'
           env-trial-num: '1'
           env-req-http-method-ratio: '{"GET": 10}'
-      - name: Benchmark
+      - name: Done
         run: echo "Done"
