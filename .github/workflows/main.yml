@@ -9,10 +9,10 @@ jobs:
         id: benchmark
         uses: tomoyane/http-continuous-benchmarking@1.0.0
         with:
-          env_target_url: 'https://example.com'
-          env_http_headers: '{"Content-Type":"application/json"}'
-          env_thread_num: '1'
-          env_trial_num: '1'
-          env_req_http_method_ratio: '{"GET": 10}'
+          target_url: 'https://example.com'
+          http_headers: '{"Content-Type":"application/json"}'
+          thread_num: '1'
+          trial_num: '1'
+          req_http_method_ratio: '{"GET": 10}'
       - name: Done
         run: echo "Done"

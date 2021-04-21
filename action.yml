@@ -2,26 +2,26 @@ name: 'http-continuous-benchmarking'
 author: 'tomoyane'
 description: 'This GitHub Actions provides a http continuous benchmarking'
 inputs:
-  env_target_url:
+  target_url:
     description: 'Request target url. Start http(s)://xxxxx.'
     required: true
-  env_http_headers:
+  http_headers:
     description: 'Request HTTP Headers. {} format.'
     required: true
     default: '{"Content-Type": "application/json"}'
-  env_thread_num:
+  thread_num:
     description: 'Benchmark thread num.'
     required: true
     default: '1'
-  env_trial_num:
+  trial_num:
     description: 'Benchmark trial number while 5seconds. If its 5times, the benchmark try 5times * 5seconds. Ex: Case of API 100rps, 100(rps) * 5(seconds) * 5(times)'
     required: true
     default: '1'
-  env_req_http_method_ratio:
+  req_http_method_ratio:
     description: 'Request HTTP Methods ratio. {} format.'
     required: true
     default: '{"GET": 10}'
-  env_req_body:
+  req_body:
     description: 'HTTP Request Body. {} format. If you use PUT or PATCH or POST, its required.'
     required: false
 runs:
