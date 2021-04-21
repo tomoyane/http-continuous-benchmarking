@@ -1,0 +1,18 @@
+on: [push]
+
+jobs:
+  hello_world_job:
+    runs-on: ubuntu-latest
+    name: TestJob
+    steps:
+      - name: Hello world action step
+        id: hello
+        uses: tomoyane/http-continuous-benchmarking@v1
+        with:
+          env-target-url: 'https://example.com'
+          env-http-headers: '{"Content-Type":"application/json"}'
+          env-thread-num: '1'
+          env-trial-num: '1'
+          env-req-http-method-ratio: '{"GET": 10}'
+      - name: Benchmark
+        run: echo "Done"
