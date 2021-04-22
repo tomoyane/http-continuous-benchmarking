@@ -59,6 +59,8 @@ jobs:
 ```
 
 ### How to use simple application
+[This repository application usage](https://github.com/tomoyane/http-continuous-benchmarking)
+
 Application basic usage.
 ```bash
 # Set required environment variable before execution
