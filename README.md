@@ -23,32 +23,56 @@ If your project needs benchmark monitoring, it collects performance data by this
   * Create a continuous report and associate it with a commit hash
   * Warn and notice when the threshold is reached
 
-### How to use
-Environment variable.  
-**(※) is required.**
+### How to use GitHub Actions
+With input variable.  
+**(※)** is required.
 
-|ENV name|Description|Example|
+|With input name|Description|Example|
 |---|---|---|
-|INPUT_TARGET_URL (※)|Request destination URL.|http(s)://xxxxxxx.com/api/v1/users|
-|INPUT_HTTP_HEADERS (※)|Request HTTP Headers.|{"Authorization": "Bearer xxx", "Content-Type": "application/json"}|
-|INPUT_THREAD_NUM (※)|Client thread num.|5|
-|INPUT_TRIAL_NUM (※)|Number of trials to apply load per load duration.|5|
-|INPUT_REQ_HTTP_METHOD_RATIO (※)|HTTP method percentage of request.|{"POST": 4, "GET": 6}|
-|INPUT_PERMANENT|Metrics data permanent.<br>Default is `false`|false|
-|INPUT_HTTP_REQ_BODY|Request body.<br>If HTTP methods contains other than GET, required this env.|{"email": "test@gmail.com"}|
+|target_url **(※)**|Request destination URL.|http(s)://xxxxxxx.com/api/v1/users|
+|http_headers **(※)**|Request HTTP Headers. `{}` format.|{"Authorization": "Bearer xxx", "Content-Type": "application/json"}|
+|thread_num **(※)**|Client thread num.|5|
+|trial_num **(※)**|Benchmark trial number while 5seconds. If its 5times, the benchmark try 5times * 5seconds.|5 <br>(Ex: Case of API 100rps, 100(rps) * 5(seconds) * 5(times))|
+|req_http_method_ratio **(※)**|HTTP method percentage of request.`{}` format.|{"POST": 4, "GET": 6}|
+|req_body|HTTP Request Body. If you use PUT or PATCH or POST, its required.`{}` format.|{"email": "xx@gmail.com"}|
 
-Basic usage.
+Sample GitHub actions workflow yaml.
+```yaml
+on: [push]
+
+jobs:
+  benchmarking:
+    runs-on: ubuntu-latest
+    name: Attack
+    steps:
+      - name: Benchmarking
+        id: benchmarking
+        uses: tomoyane/http-continuous-benchmarking@1.0.0
+        with:
+          target_url: 'https://example.com'
+          http_headers: '{"Content-Type":"application/json"}'
+          thread_num: '1'
+          trial_num: '1'
+          req_http_method_ratio: '{"GET": 10}'
+      - name: Completed
+        run: echo "Completed benchmarking"
+```
+
+### How to use simple application
+Application basic usage.
 ```bash
 # Set required environment variable before execution
-$ export INPUT_TARGET_URL='https://example.com'
-$ export INPUT_REQ_HTTP_METHOD_RATIO='{"GET":10}'
-$ export INPUT_HTTP_HEADERS='{"Content-Type":"application/json"}'
-$ export INPUT_THREAD_NUM=2
-$ export INPUT_TRIAL_NUM=2
+$ git clone https://github.com/tomoyane/http-continuous-benchmarking.git
+$ cd http-continuous-benchmarking; go build
+$ export INPUT_TARGET_URL='https://example.com' \
+         INPUT_REQ_HTTP_METHOD_RATIO='{"GET":10}' \
+         INPUT_HTTP_HEADERS='{"Content-Type":"application/json"}' \
+         INPUT_THREAD_NUM=2 \
+         INPUT_TRIAL_NUM=2
 $ ./http-continuous-benchmarking
 ```
 
-Docker usage.
+Docker image usage.
 ```bash
 $ docker pull tomohito/http-continuous-benckmarking
 $ docker run \
