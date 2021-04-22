@@ -29,23 +29,22 @@ Environment variable.
 
 |ENV name|Description|Example|
 |---|---|---|
-|TARGET_URL (※)|Request destination URL.|http(s)://xxxxxxx.com/api/v1/users|
-|HTTP_HEADERS (※)|Request HTTP Headers.|{"Authorization": "Bearer xxx", "Content-Type": "application/json"}|
-|THREAD_NUM (※)|Client thread num.|5|
-|TRIAL_NUM (※)|Number of trials to apply load per load duration.|5|
-|REQ_HTTP_METHOD_RATIO (※)|HTTP method percentage of request.|{"POST": 4, "GET": 6}|
-|PERMANENT|Metrics data permanent.<br>Default is `false`|false|
-|HTTP_REQ_BODY|Request body.<br>If HTTP methods contains other than GET, required this env.|{"email": "test@gmail.com"}|
+|INPUT_TARGET_URL (※)|Request destination URL.|http(s)://xxxxxxx.com/api/v1/users|
+|INPUT_HTTP_HEADERS (※)|Request HTTP Headers.|{"Authorization": "Bearer xxx", "Content-Type": "application/json"}|
+|INPUT_THREAD_NUM (※)|Client thread num.|5|
+|INPUT_TRIAL_NUM (※)|Number of trials to apply load per load duration.|5|
+|INPUT_REQ_HTTP_METHOD_RATIO (※)|HTTP method percentage of request.|{"POST": 4, "GET": 6}|
+|INPUT_PERMANENT|Metrics data permanent.<br>Default is `false`|false|
+|INPUT_HTTP_REQ_BODY|Request body.<br>If HTTP methods contains other than GET, required this env.|{"email": "test@gmail.com"}|
 
 Basic usage.
 ```bash
 # Set required environment variable before execution
-$ export TARGET_URL='https://example.com'
-$ export REQ_HTTP_METHOD_RATIO='{"GET":10}'
-$ export HTTP_METHODS='GET'
-$ export HTTP_HEADERS='{"Content-Type":"application/json"}'
-$ export THREAD_NUM=2
-$ export TRIAL_NUM=2
+$ export INPUT_TARGET_URL='https://example.com'
+$ export INPUT_REQ_HTTP_METHOD_RATIO='{"GET":10}'
+$ export INPUT_HTTP_HEADERS='{"Content-Type":"application/json"}'
+$ export INPUT_THREAD_NUM=2
+$ export INPUT_TRIAL_NUM=2
 $ ./http-continuous-benchmarking
 ```
 
@@ -53,12 +52,11 @@ Docker usage.
 ```bash
 $ docker pull tomohito/http-continuous-benckmarking
 $ docker run \
-  --env TARGET_URL='https://example.com' \
-  --env REQ_HTTP_METHOD_RATIO='{"GET":10}' \
-  --env HTTP_METHODS='GET' \
-  --env HTTP_HEADERS='{"Content-Type":"application/json"}' \
-  --env THREAD_NUM=2 \
-  --env TRIAL_NUM=2 \
+  --env INPUT_TARGET_URL='https://example.com' \
+  --env INPUT_REQ_HTTP_METHOD_RATIO='{"GET":10}' \
+  --env INPUT_HTTP_HEADERS='{"Content-Type":"application/json"}' \
+  --env INPUT_THREAD_NUM=2 \
+  --env INPUT_TRIAL_NUM=2 \
   -i tomohito/http-continuous-benckmarking
 ```
 
