@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -60,6 +61,7 @@ func main() {
 		for _, v := range errs {
 			fmt.Println(v)
 		}
+		os.Exit(1)
 		return
 	}
 
