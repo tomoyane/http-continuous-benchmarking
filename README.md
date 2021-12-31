@@ -36,7 +36,7 @@ With input variable.
 |req_http_method_ratio **(※)**|HTTP method percentage of request. Json `{}` format.|{"POST": 4, "GET": 6}|
 |req_body|HTTP Request Body. If you use PUT or PATCH or POST, its required. Json `{}` format.|{"email": "xx@gmail.com"}|
 |enable_alert|Alert. You want to catch alert when over threshold.|true or false|
-|slack_web_hook_url|Slack web hook url.|https://hooks.slack.com/services/XXXXXXX/XXXXXXX/XXXXXXXXXXXXXX|
+|slack_web_hook_url|Slack web hook url. You can get [here](https://moff-bear.slack.com/apps/new/A0F7XDUAZ--incoming-webhook-)|https://hooks.slack.com/services/XXXXXXX/XXXXXXX/XXXXXXXXXXXXXX|
 |slack_channel|Slack channel.|test-01|
 |slack_notify_threshold_latency_millis|Threshold latency milliseconds for notification. This is to check latency average.|100|
 |slack_notify_threshold_rps|Threshold request per seconds for notification. |20|
@@ -52,7 +52,7 @@ jobs:
     steps:
       - name: Benchmarking
         id: benchmarking
-        uses: tomoyane/http-continuous-benchmarking@1.0.0
+        uses: tomoyane/http-continuous-benchmarking@1.1.0
         with:
           target_url: 'https://example.com'
           http_headers: '{"Content-Type":"application/json"}'
@@ -62,6 +62,36 @@ jobs:
       - name: Completed
         run: echo "Completed benchmarking"
 ```
+
+With Slack notification workflow yaml.
+```yaml
+on: [push]
+
+jobs:
+  benchmarking:
+    runs-on: ubuntu-latest
+    name: Attack
+    steps:
+      - name: Benchmarking
+        id: benchmarking
+        uses: tomoyane/http-continuous-benchmarking@1.1.0
+        with:
+          target_url: 'https://example.com'
+          http_headers: '{"Content-Type":"application/json"}'
+          thread_num: '1'
+          trial_num: '1'
+          req_http_method_ratio: '{"GET": 10}'
+          enable_alert: 'true'
+          slack_web_hook_url: 'https://hooks.slack.com/services/XXXXXXX/XXXXXXX/XXXXXXXXXXXXXX'
+          slack_channel: 'test-01'
+          slack_notify_threshold_latency_millis: 20
+      - name: Completed
+        run: echo "Completed benchmarking"
+```
+
+If result is over threshold, you will catch bellow message.
+
+![slack_msg_sample](https://user-images.githubusercontent.com/9509132/147807558-91190c09-a2d8-45cc-b63a-66b0dbd7b131.png)
 
 ### How to use simple application
 [This repository application usage](https://github.com/tomoyane/http-continuous-benchmarking)
