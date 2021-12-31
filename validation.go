@@ -42,7 +42,7 @@ func ValidateEnv() []error {
 	if err := validatePermanent(); err != nil {
 		errs = append(errs, err)
 	}
-	if err := validateSlackNotifyThreshHoldLatencyMillis(); err != nil {
+	if err := validateAlert(); err != nil {
 		errs = append(errs, err)
 	}
 	return errs
@@ -147,6 +147,31 @@ func validatePermanent() error {
 	return nil
 }
 
+// Validate ENABLE_ALERT,SLACK_NOTIFY_THRESHOLD_LATENCY_MILLIS,SLACK_NOTIFY_THRESHOLD_RPS env
+// Optional
+func validateAlert() error {
+	env := os.Getenv(EnvEnableAlert)
+	if validateEmpty(env) {
+		return nil
+	}
+
+	isEnable, err := strconv.ParseBool(env)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Environment valiable %s is true or false.", EnvEnableAlert))
+	}
+
+	if !isEnable {
+		return nil
+	}
+
+	latencyErr := validateSlackNotifyThreshHoldLatencyMillis()
+	rpsErr := validateSlackNotifyThreshHoldRps()
+	if latencyErr != nil && rpsErr != nil{
+		return errors.New(fmt.Sprintf("Environment valiable %s or %s is required.", EnvSlackNotifyThreshHoldLatencyMillis, EnvSlackNotifyThreshHoldRps))
+	}
+	return nil
+}
+
 // Validate SLACK_NOTIFY_THRESHOLD_LATENCY_MILLIS env
 // Optional
 func validateSlackNotifyThreshHoldLatencyMillis() error {
@@ -156,6 +181,19 @@ func validateSlackNotifyThreshHoldLatencyMillis() error {
 	}
 	if _, err := strconv.Atoi(env); err != nil {
 		return errors.New(fmt.Sprintf("Environment valiable %s is not number.", EnvSlackNotifyThreshHoldLatencyMillis))
+	}
+	return nil
+}
+
+// Validate SLACK_NOTIFY_THRESHOLD_RPS env
+// Optional
+func validateSlackNotifyThreshHoldRps() error {
+	env := os.Getenv(EnvSlackNotifyThreshHoldRps)
+	if validateEmpty(env) {
+		return nil
+	}
+	if _, err := strconv.Atoi(env); err != nil {
+		return errors.New(fmt.Sprintf("Environment valiable %s is not number.", EnvSlackNotifyThreshHoldRps))
 	}
 	return nil
 }

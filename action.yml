@@ -2,6 +2,7 @@ name: 'http-continuous-benchmarking'
 author: 'tomoyane'
 description: 'This GitHub Actions provides a http continuous benchmarking'
 inputs:
+  # Http request
   target_url:
     description: 'Request target url. Start http(s)://xxxxx.'
     required: true
@@ -23,6 +24,24 @@ inputs:
     default: '{"GET": 10}'
   req_body:
     description: 'HTTP Request Body. {} format. If you use PUT or PATCH or POST, its required.'
+    required: false
+
+  # Alert notification
+  enable_alert:
+    description: 'Alert. You want to catch alert when over threshold.'
+    required: false
+    default: 'false'
+  slack_web_hook_url:
+    description: 'Slack web hook url.'
+    required: false
+  slack_channel:
+    description: 'Slack channel.'
+    required: false
+  slack_notify_threshold_latency_millis:
+    description: 'Threshold latency milliseconds for notification. This is to check latency average'
+    required: false
+  slack_notify_threshold_rps:
+    description: 'Threshold request per seconds for notification.'
     required: false
 runs:
   using: 'docker'
