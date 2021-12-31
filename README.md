@@ -30,11 +30,16 @@ With input variable.
 |With input name|Description|Example|
 |---|---|---|
 |target_url **(※)**|Request destination URL.|http(s)://xxxxxxx.com/api/v1/users|
-|http_headers **(※)**|Request HTTP Headers. `{}` format.|{"Authorization": "Bearer xxx", "Content-Type": "application/json"}|
+|http_headers **(※)**|Request HTTP Headers. Json `{}` format.|{"Authorization": "Bearer xxx", "Content-Type": "application/json"}|
 |thread_num **(※)**|Client thread num.|5|
 |trial_num **(※)**|Benchmark trial number while 5seconds. If its 5times, the benchmark try 5times * 5seconds.|5 <br>(Ex: Case of API 100rps, 100(rps) * 5(seconds) * 5(times))|
-|req_http_method_ratio **(※)**|HTTP method percentage of request.`{}` format.|{"POST": 4, "GET": 6}|
-|req_body|HTTP Request Body. If you use PUT or PATCH or POST, its required.`{}` format.|{"email": "xx@gmail.com"}|
+|req_http_method_ratio **(※)**|HTTP method percentage of request. Json `{}` format.|{"POST": 4, "GET": 6}|
+|req_body|HTTP Request Body. If you use PUT or PATCH or POST, its required. Json `{}` format.|{"email": "xx@gmail.com"}|
+|enable_alert|Alert. You want to catch alert when over threshold.|true or false|
+|slack_web_hook_url|Slack web hook url.|https://hooks.slack.com/services/XXXXXXX/XXXXXXX/XXXXXXXXXXXXXX|
+|slack_channel|Slack channel.|test-01|
+|slack_notify_threshold_latency_millis|Threshold latency milliseconds for notification. This is to check latency average.|100|
+|slack_notify_threshold_rps|Threshold request per seconds for notification. |20|
 
 Sample GitHub actions workflow yaml.
 ```yaml
@@ -71,6 +76,18 @@ $ export INPUT_TARGET_URL='https://example.com' \
          INPUT_HTTP_HEADERS='{"Content-Type":"application/json"}' \
          INPUT_THREAD_NUM=2 \
          INPUT_TRIAL_NUM=2
+$ ./http-continuous-benchmarking
+
+## With Alert to Slack
+$ export INPUT_TARGET_URL='https://example.com' \
+         INPUT_REQ_HTTP_METHOD_RATIO='{"GET":10}' \
+         INPUT_HTTP_HEADERS='{"Content-Type":"application/json"}' \
+         INPUT_THREAD_NUM=2 \
+         INPUT_TRIAL_NUM=2 \
+         INPUT_ENABLE_ALERT=true \
+         INPUT_SLACK_WEB_HOOK_URL="https://hooks.slack.com/services/XXXXXXX/XXXXXXX/XXXXXXXXXXXXXX" \
+         INPUT_SLACK_CHANNEL="test-01" \
+         INPUT_SLACK_NOTIFY_THRESHOLD_LATENCY_MILLIS=100 # Case of latency
 $ ./http-continuous-benchmarking
 ```
 

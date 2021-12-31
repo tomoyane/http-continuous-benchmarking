@@ -124,15 +124,17 @@ func TestValidatePermanent(t *testing.T) {
 }
 
 func TestValidateSlackNotifyThreshHoldLatencyMillis(t *testing.T) {
+	os.Setenv(EnvEnableAlert, "true")
 	os.Setenv(EnvSlackNotifyThreshHoldLatencyMillis, "invalid")
-	result := validateSlackNotifyThreshHoldLatencyMillis()
-	if result == nil {
-		t.Fatalf("Expect invalid validation error. %s", EnvSlackNotifyThreshHoldLatencyMillis)
+	result := validateAlert()
+	if result != nil {
+		t.Fatalf("Expect invalid validation error. %s", EnvEnableAlert)
 	}
 
-	os.Setenv(EnvSlackNotifyThreshHoldLatencyMillis, "string")
-	result = validateSlackNotifyThreshHoldLatencyMillis()
-	if result == nil {
-		t.Fatalf("Expect number validation error. %s", EnvSlackNotifyThreshHoldLatencyMillis)
+	os.Setenv(EnvSlackNotifyThreshHoldLatencyMillis, "")
+	os.Setenv(EnvSlackNotifyThreshHoldRps, "")
+	result = validateAlert()
+	if result != nil {
+		t.Fatalf("Expect validation error. %s", EnvEnableAlert)
 	}
 }

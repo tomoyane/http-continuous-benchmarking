@@ -9,14 +9,43 @@ import (
 	"net/http"
 )
 
+type MetricsType int
+
+const (
+	Percentile99 MetricsType = iota
+	Percentile95
+	PercentileAvg
+	PercentileMax
+	PercentileMin
+	Rps
+)
+
+func (mt MetricsType) String() string {
+	if mt != Rps {
+		return "Latency"
+	} else {
+		return "Rps"
+	}
+}
+
 type Calculator interface {
+	// GetMetricsResult
+	// Get benchmark result
 	GetMetricsResult() Metrics
 
+	// CalculatePerTrial
+	// Calculate metrics of attack per trial
 	CalculatePerTrial(requests []int, method string, trialNum int, errData map[int]int)
 
+	// CalculateMethodErrors
+	// Calculate error count per HTTP Method
 	CalculateMethodErrors(srcData map[string]map[int]int, dstData map[string]map[int]int) map[string]map[int]int
 
+	// PercentileN
+	// Calculate percentile
 	PercentileN(size int, percentile int) int
+
+	IsOverThreshHold(metricsType MetricsType, threshold int, targetHttpMethod string) bool
 }
 
 type Metrics struct {
@@ -140,6 +169,93 @@ func (m Metrics) GetMetricsResult() Metrics {
 func (m Metrics) PercentileN(size int, percentile int) int {
 	n := (float64(percentile) / float64(100)) * float64(size)
 	return int(math.Round(n*1) / 1)
+}
+
+func (m Metrics) IsOverThreshHold(metricsType MetricsType, threshold int, targetHttpMethod string) bool {
+	switch targetHttpMethod {
+	case http.MethodGet:
+		metrics := getMetrics(metricsType, m.GetMetrics)
+		for _, metric := range metrics {
+			if metricsType != Rps && metric > float64(threshold) {
+				return true
+			}
+			if metricsType == Rps && metric < float64(threshold) {
+				return true
+			}
+		}
+	case http.MethodPost:
+		metrics := getMetrics(metricsType, m.PostMetrics)
+		for _, metric := range metrics {
+			if metricsType != Rps && metric > float64(threshold) {
+				return true
+			}
+			if metricsType == Rps && metric < float64(threshold) {
+				return true
+			}
+		}
+	case http.MethodPut:
+		metrics := getMetrics(metricsType, m.PutMetrics)
+		for _, metric := range metrics {
+			if metricsType != Rps && metric > float64(threshold) {
+				return true
+			}
+			if metricsType == Rps && metric < float64(threshold) {
+				return true
+			}
+		}
+	case http.MethodPatch:
+		metrics := getMetrics(metricsType, m.PatchMetrics)
+		for _, metric := range metrics {
+			if metricsType != Rps && metric > float64(threshold) {
+				return true
+			}
+			if metricsType == Rps && metric < float64(threshold) {
+				return true
+			}
+		}
+	case http.MethodDelete:
+		metrics := getMetrics(metricsType, m.DeleteMetrics)
+		for _, metric := range metrics {
+			if metricsType != Rps && metric > float64(threshold) {
+				return true
+			}
+			if metricsType == Rps && metric < float64(threshold) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func getMetrics(metricsType MetricsType, details []MetricsDetail) []float64 {
+	var metrics []float64
+	switch metricsType {
+	case Percentile95:
+		for _, detail := range details {
+			metrics = append(metrics, detail.Percentile95)
+		}
+	case Percentile99:
+		for _, detail := range details {
+			metrics = append(metrics, detail.Percentile99)
+		}
+	case PercentileAvg:
+		for _, detail := range details {
+			metrics = append(metrics, detail.PercentileAvg)
+		}
+	case PercentileMax:
+		for _, detail := range details {
+			metrics = append(metrics, detail.PercentileMax)
+		}
+	case PercentileMin:
+		for _, detail := range details {
+			metrics = append(metrics, detail.PercentileMin)
+		}
+	case Rps:
+		for _, detail := range details {
+			metrics = append(metrics, detail.Rps)
+		}
+	}
+	return metrics
 }
 
 func (md MetricsDetail) outputStats(method string) {

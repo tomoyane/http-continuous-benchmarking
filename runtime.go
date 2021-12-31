@@ -18,8 +18,11 @@ type RuntimeInfo struct {
 	HttpRequestMethodRatio             map[string]int
 	Permanent                          bool
 	HttpRequestBody                    io.Reader
+	EnableAlert                        bool
 	SlackWebHookUrl                    string
+	SlackChannel                       string
 	SlackNotifyThreshHoldLatencyMillis int
+	SlackNotifyThreshHoldRps           int
 }
 
 // NewRuntimeInfo New RuntimeInfo from environment variable
@@ -37,8 +40,15 @@ func NewRuntimeInfo() RuntimeInfo {
 	}
 	permanent, _ := strconv.ParseBool(os.Getenv(EnvPermanent))
 	body := strings.NewReader(os.Getenv(EnvHttpRequestBody))
+
+	isEnable, _ := strconv.ParseBool(os.Getenv(EnvEnableAlert))
 	slackWebHookUrl := os.Getenv(EnvSlackWebHookUrl)
+	slackChannel := os.Getenv(EnvSlackChannel)
+	if !strings.HasPrefix(slackChannel, "#") {
+		slackChannel = "#" + slackChannel
+	}
 	slackNotifyThreshHoldLatencyMillis, _ := strconv.Atoi(os.Getenv(EnvSlackNotifyThreshHoldLatencyMillis))
+	slackNotifyThreshHoldRps, _ := strconv.Atoi(os.Getenv(EnvSlackNotifyThreshHoldRps))
 	return RuntimeInfo{
 		TargetUrl:                          targetUrl,
 		HttpMethods:                        methods,
@@ -48,7 +58,10 @@ func NewRuntimeInfo() RuntimeInfo {
 		HttpRequestMethodRatio:             requestMethodRatio,
 		Permanent:                          permanent,
 		HttpRequestBody:                    body,
+		EnableAlert:                        isEnable,
 		SlackWebHookUrl:                    slackWebHookUrl,
+		SlackChannel:                       slackChannel,
 		SlackNotifyThreshHoldLatencyMillis: slackNotifyThreshHoldLatencyMillis,
+		SlackNotifyThreshHoldRps:           slackNotifyThreshHoldRps,
 	}
 }

@@ -10,6 +10,10 @@ import (
 )
 
 const (
+	// =========================================================================
+	// ============================== HTTP Request =============================
+	// =========================================================================
+
 	// EnvTargetUrl Required
 	// ex: https://example.com
 	EnvTargetUrl = "INPUT_TARGET_URL"
@@ -35,24 +39,49 @@ const (
 	// ex: {"POST": 4, "GET": 6}
 	EnvReqHttpMethodRatio = "INPUT_REQ_HTTP_METHOD_RATIO"
 
-	// EnvPermanent Optional
-	// Using GitHub pages
-	// ex: true || false
-	EnvPermanent = "INPUT_PERMANENT"
-
 	// EnvHttpRequestBody Optional
 	// If not empty, always use body when not GET method
 	// ex: {"email": "test@gmail.com", "password": "A_test12345-"}
 	EnvHttpRequestBody = "INPUT_HTTP_REQ_BODY"
 
+	// =========================================================================
+	// ============================== Report data ==============================
+	// =========================================================================
+
+	// EnvPermanent Optional
+	// Using GitHub pages
+	// ex: true || false
+	EnvPermanent = "INPUT_PERMANENT"
+
+	// =========================================================================
+	// ============================== Slack Alert ==============================
+	// =========================================================================
+
+	// EnvEnableAlert Optional
+	// ex: true | false
+	EnvEnableAlert = "INPUT_ENABLE_ALERT"
+
 	// EnvSlackWebHookUrl Optional
 	// ex: https://slack.com
 	EnvSlackWebHookUrl = "INPUT_SLACK_WEB_HOOK_URL"
 
+	// EnvSlackChannel Optional
+	// ex: #test
+	EnvSlackChannel = "INPUT_SLACK_CHANNEL"
+
 	// EnvSlackNotifyThreshHoldLatencyMillis Optional
-	// If set this one, notify slack when do not achieve
+	// If set this one, notify slack when latency is not achieve threshold
 	// ex: 200
 	EnvSlackNotifyThreshHoldLatencyMillis = "INPUT_SLACK_NOTIFY_THRESHOLD_LATENCY_MILLIS"
+
+	// EnvSlackNotifyThreshHoldRps Optional
+	// If set this one, notify slack when The request per seconds is not achieve threshold
+	// ex: 20
+	EnvSlackNotifyThreshHoldRps = "INPUT_SLACK_NOTIFY_THRESHOLD_RPS"
+)
+
+var (
+	allowedHttpMethods = []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodPatch, http.MethodDelete}
 )
 
 func main() {
@@ -120,4 +149,26 @@ func main() {
 	graph := NewGraph(metrics)
 	charts := graph.GenerateCharts(metrics.TimeRange)
 	graph.Output(charts, startTime, endTime)
+
+	// Alert
+	if runtime.EnableAlert {
+		fmt.Println("\nCheck alert threshold")
+		if runtime.SlackNotifyThreshHoldLatencyMillis != 0 {
+			for _, method := range allowedHttpMethods {
+				// TODO: Choose percentile type
+				if calculator.IsOverThreshHold(PercentileAvg, runtime.SlackNotifyThreshHoldLatencyMillis, method) {
+					NewSlack(runtime.SlackWebHookUrl, runtime.SlackChannel).NotifyAlert(PercentileAvg)
+					return
+				}
+			}
+		}
+		if runtime.SlackNotifyThreshHoldRps != 0 {
+			for _, method := range allowedHttpMethods {
+				if calculator.IsOverThreshHold(Rps, runtime.SlackNotifyThreshHoldRps, method) {
+					NewSlack(runtime.SlackWebHookUrl, runtime.SlackChannel).NotifyAlert(PercentileAvg)
+					return
+				}
+			}
+		}
+	}
 }
