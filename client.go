@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"strings"
 	"time"
 
@@ -105,6 +106,10 @@ func (h HttpClient) Attack(attackNum int) Result {
 				} else {
 					errData[request.Method] = map[int]int{res.StatusCode: 1}
 				}
+			}
+			if res != nil {
+				io.Copy(ioutil.Discard, res.Body)
+				res.Body.Close()
 			}
 		}
 	}
