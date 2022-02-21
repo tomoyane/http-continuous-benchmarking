@@ -107,12 +107,10 @@ func (h HttpClient) Attack(attackNum int) Result {
 					errData[request.Method] = map[int]int{res.StatusCode: 1}
 				}
 			}
-			defer func() {
-				if res != nil {
-					io.Copy(ioutil.Discard, res.Body)
-					res.Body.Close()
-				}
-			}()
+			if res != nil {
+				io.Copy(ioutil.Discard, res.Body)
+				res.Body.Close()
+			}
 		}
 	}
 	fmt.Printf("(Thread-%d): End attack \n", attackNum)
